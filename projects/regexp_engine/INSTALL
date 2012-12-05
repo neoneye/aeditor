@@ -1,0 +1,32 @@
+Prerequisites
+=================
+
+  1.   Ruby-1.8.1 or better
+       http://www.ruby-lang.org/en/
+
+  2.   Iterator-0.8 or better
+       http://rubyforge.org/frs/?group_id=18&release_id=512
+
+
+Installation
+=================
+
+Follow these 3 steps in order to install.
+last step may require 'root' permissions.
+
+       ruby install.rb config
+       ruby install.rb setup
+       ruby install.rb install
+
+Now go to the 'samples/' directory and have fun.
+
+
+Any Trouble ?
+=================
+
+If you experience problems with installation, then please 
+goto this homepage and submit a bug-report. 
+http://rubyforge.org/tracker/?atid=149&group_id=18&func=browse
+
+or mail to me directly
+Simon Strandgaard <neoneye@gmail.com>

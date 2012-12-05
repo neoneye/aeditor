@@ -1,0 +1,185 @@
+AEditor version 1.x
+===================
+
+This application is a programmers editor. 
+
+You may find screenshots here:
+http://aeditor.rubyforge.org/wiki/wiki.pl?MainThemes
+
+
+
+Installation Guide (Windows)
+============================
+
+This program has 2 dependencies.
+
+  dependency#1  Ruby 1.8.1 or better
+  http://rubyforge.org/frs/?group_id=167
+  be sure that 'fxruby' gets installed.
+
+  depencency#2  iterator 0.8 or better
+  http://rubyforge.org/frs/?group_id=18&release_id=512
+
+
+Install this program by following these 3 steps:
+
+  C:\somewhere> ruby install.rb config
+
+  C:\somewhere> ruby install.rb setup
+
+  C:\somewhere> ruby install.rb install
+
+Lets check that this program are working as its supposed to.
+
+  C:\somewhere> aeditor -v
+  versions:
+    editor           "1.9"
+    fox toolkit      "1.0.43"
+    fxruby           "1.0.25"
+    iterator         "0.8"
+    ruby             "1.8.1"
+
+  other info:
+    platform         "windows"
+
+If you don't get similar output, then you maybe
+hasn't installed the dependencies correct.
+
+You may now start the program
+
+  C:\somewhere> aeditor
+
+
+You must copy the 'config_neoneye' file into your homedir
+and name that file '.aeditor', otherwise no syntax coloring!
+I don't know much about where the homedir are on windows.
+If you know more about this than I then please help me make
+this paragraph more clear.  Thanks.
+
+
+Congratulations.   Remember this program is open source and 
+that the author doesn't make profit on it.
+He appreciates whatever feedback he gets.
+
+Please report if this program behaves abnormal in any way,
+if there are unacceptable slowdowns, if the program mysticly dies.
+There are always room for improvment, if you have ideas
+then please share them with the author.
+
+authors mail adress <neoneye@adslhome.dk>
+
+
+Installation Guide (Unix/Linux/BSD)
+===================================
+
+This program has 3 dependencies.
+
+  dependency#1  Ruby 1.8.1 or better
+  http://rubyforge.org/frs/?group_id=30&release_id=222
+
+  dependency#2  fxruby 1.0.x   (doesn't yet work with 1.2.x)
+  http://fxruby.sourceforge.net/
+
+  depencency#3  iterator 0.8 or better
+  http://rubyforge.org/frs/?group_id=18&release_id=512
+
+
+Install this program by following these 3 steps:
+Beware, last step may require root permissions.
+
+  prompt> ruby install.rb config
+
+  prompt> ruby install.rb setup
+
+  prompt> ruby install.rb install
+
+Lets check that this program are working as its supposed to.
+
+  prompt> aeditor -v
+  versions:
+    editor           "1.9"
+    fox toolkit      "1.0.43"
+    fxruby           "1.0.25"
+    iterator         "0.8"
+    ruby             "1.8.1"
+
+  other info:
+    platform         "unix"
+
+If you don't get similar output, then you maybe
+hasn't installed the dependencies correct.
+
+You may now start the program
+
+  prompt> aeditor
+
+In order to get syntax coloring, you must copy 
+the 'config_neoneye' file into your homedir and 
+name the file '.aeditor'.
+
+
+Congratulations.   Remember this program is open source and 
+that the author doesn't make profit on it.
+He appreciates whatever feedback he gets.
+
+Please report if this program behaves abnormal in any way,
+if there are unacceptable slowdowns, if the program mysticly dies.
+There are always room for improvment, if you have ideas
+then please share them with the author.
+
+authors mail adress <neoneye@adslhome.dk>
+
+
+Installation Guide (MacOSX)
+===================================
+
+If you use DarwinPorts or Fink there is only 2 dependencies
+  install FXRuby-1.0.x
+  install Iterator (last entry on the following list)
+
+If you don't use DarwinPorts nor Fink to install fxruby, it 
+can be difficult to get the dependencies installed.
+We spend quite some time attempting to manually install
+things.. and it took a whole day. Use DarwinPorts or Fink
+if possible.
+
+  dependency#1  Apple Developer Toolkit
+  it contains gcc + friends.
+  
+  dependency#2  X11 sdk
+  fox can only compile if it can access X11's header files.
+
+  dependency#3  Lyle Johnsons OSX patch for Fox
+  http://www.fifthplanet.net/cgi-bin/wiki.pl?Mac_OS_X
+
+  dependency#4  Fox toolkit 1.0.x
+  http://www.fox-toolkit.org/download.html
+  WARNING: before invoking make, you must apply 
+  Lyle Johnson's libtool patch. Otherwise it refuses to
+  link in the end. (fox takes long time to compile)
+  If fox cannot locate X11, then you may try to setup
+  these environment variables
+  CPATH=/usr/X11R6/include
+  LIBRARY_PATH=/usr/X11R6/lib
+  Be sure to compile Fox as a static library, otherwise
+  it result in big slowdowns.
+
+  dependency#5  Ruby 1.8.1
+  http://rubyforge.org/frs/?group_id=30&release_id=222
+  
+  dependency#6  FXRuby 1.0.x
+  http://fxruby.sourceforge.net/
+
+  dependency#7  Iterator 0.8 or better
+  http://rubyforge.org/frs/?group_id=18&release_id=512
+
+
+WARNING: Mac has a low stacksize limit, you must increase the
+stacksize so that AEditor is able to run. If you experience
+StackSize error's then it is probably because of a too low
+setting.           promt$  limit stacksize 8192
+Above command should make this problem go away.
+
+
+---------------
+End of document

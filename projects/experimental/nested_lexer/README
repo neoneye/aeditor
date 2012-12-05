@@ -1,0 +1,16 @@
+
+Setting up XTerm with UTF-8 support
+===================================
+
+For full instructions, see 
+http://www.tldp.org/HOWTO/Unicode-HOWTO-2.html
+
+
+Add this to your $HOME/.Xdefaults
+
+xterm*utf8:   1
+xterm*VT100*font:     -Misc-Fixed-Medium-R-Normal--18-120-100-100-C-90-ISO10646-1
+xterm*VT100*wideFont: -Misc-Fixed-Medium-R-Normal-ja-18-120-100-100-C-180-ISO10646-1
+
+
+

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE article
+    PUBLIC "-//OASIS//DTD DocBook XML V4.2//EN"
+        "http://www.oasis-open.org/docbook/xml/4.2/docbookx.dtd" [
+	<!ENTITY header SYSTEM "header.xml">
+	<!ENTITY about SYSTEM "about.xml">
+	<!ENTITY overview SYSTEM "overview.xml">
+	<!ENTITY backend SYSTEM "backend.xml">
+	<!ENTITY regexp SYSTEM "regexp.xml">
+	<!ENTITY regexp_syntax_reference SYSTEM "regexp_syntax_reference.xml">
+	<!ENTITY frontend SYSTEM "frontend.xml">
+	<!ENTITY custom SYSTEM "custom.xml">
+	<!ENTITY todo SYSTEM "todo.xml">
+]>
+<!-- $Id: main.xml,v 1.8 2004/01/31 14:26:24 neoneye Exp $ -->
+<article>
+&header;
+&about;
+&overview;
+&frontend;
+&backend;
+&regexp;
+&custom;
+&todo;
+</article>

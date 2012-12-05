@@ -1,0 +1,125 @@
+TODO:
+* The #step method, should behave sligthly different
+  in following cases (implementation priorities):
+  OK1) restart if mismatch; count+=1
+  OK2) when increasing n, then we must reset count
+  OK3) pop-elements, if n+1 exceeds EOI, then the limit for how
+     much that can be matched has been reached,
+     and we must pop the last element.
+     restart when EOI or EOR is reached; count+=1
+  OK4a) greedy
+  4b) lazy 
+  5) minimum, maximum
+  EOI == EndOfInput
+  EOR == EndOfRegex
+  Point (3) is difficult to implement.. I have to
+  investigate that further, before I take action.
+  Only when there is 2 or more repeats in the regex, then
+  both point (3) will become necessary.
+  Thus investigate /a*b*/ kind of patterns.
+
+* AbstractSyntaxTree pretty printer should not overload
+  #inspect. Instead it should install a #pretty method.
+  When an assertion_equal for instance fails, then the
+  output is cluttered up, by this pretty-printer.
+  #inspect should just print the name of the node, and
+  nothing more.  <Literal 'a'>
+  It is only when explicit specified that the pretty-printer
+  should do its work... thus #pretty.
+
+* parse simple regex-string into regex-language.
+  In order to parse full blown GNU regex I need to implement:
+  repeat:
+  OK   ranges {n,m}, {m}, {n,}, {,m}, {m}*, {m}+?, {n,m}?
+  3)   zero-one  ?  ??
+
+  fundemental:
+  4)   character classes [az], [a-z], [^az], [azAZ]...
+  5)   metas ^ $ \A \z \Z \b \B
+  6)   ruby character classes \w\W\s\S\d\D
+
+  exsotic:
+  7)   look ahead,  (?=...)  (?!...)
+  8)   ruby case insensitive (?i:...)
+  9)   pure grouping  (?:...)
+  0)   hex \0x0a
+  1)   octal \040
+  2)   posix character classes [[:digig:]]...
+  3)   posix comment (?#...)
+
+* better names to some of the classes/methods.
+  some classes still have the 'Regex' prefix.. remove me.
+  others lack meaning.. make them intuitive.
+
+* when ascii-regex is working, then I better focus on how to make unicode
+  regex working.
+
+* [optimization] Scanner#visit_repeat, the way it detect
+  endless loops are in-efficient. It is possible to bail-out much
+  sooner, by using an @parent_repeat_end_position stack.
+  Before invoking pattern.accept(self).. we first push current
+  repeat_ends on this stack.
+
+
+FEATURES:
+* parse Regex-string into Regex-AbstractSyntaxTree.
+  ( ... )    group -> register
+  |          alternation
+  \1 .. \9   backreferences
+  \          escape
+  .          match anything except newline
+  *          repeat(0..infinity) greedy 
+  *?         repeat(0..infinity) lazy 
+  +          repeat(1..infinity) greedy  
+  +?         repeat(1..infinity) lazy  
+  {n,m}      repeat(n..m) greedy constraint(n <= m)
+  {n,m}?     repeat(n..m) lazy   constraint(n <= m)
+  {n,}       repeat(n..infinity) greedy
+  {n,}?      repeat(n..infinity) lazy
+  {m}        repeat(m..m) greedy
+  {m}?       repeat(m..m) lazy         Does this one make sense ?
+  specialcase: illegal ranges is treated as they are just 
+  ordinary literals.
+
+* pretty printer of the AST.
+
+* 'scanner.rb' transform's AST into an Array, where composite 
+  nodes occur twice: Open and Close. Similar to XML.
+
+* 'scanner2.rb' transform's AST into a Tree, where each node
+  node is aware of the successing node. There is also inserted
+  some sentinel nodes (Nil class and Last class).
+
+* the 'scanner.rb' is far from ideal.. this is because
+  I am primary goal is to make it work... speed
+  is not a goal yet. I iterates over repeats in 
+  a recursive manner. It maximizes the right-most
+  repeats as a start.. It could be optimized 
+  by starting maximizing the left-most repeats.
+  It has problems with nested repeats.
+  Also problems with nested alternations.
+
+* the 'scanner2.rb' is closer to the ideal.
+  No problems with nested repeats.
+
+* features of the scanner so far:
+  a|b|c      alternation 
+  *          repeat(0..infinity) greedy
+  ( ... )    grouping -> register.. nested repeat also works
+
+
+NOTES:
+* RegexEngineDesign: Each design has its own 
+  special drawbacks, some things gets almost 
+  impossible to implement.
+  DFA            grouping and backreferences.
+  AST+recursive  repeat.
+  AST+iterator   alternation, next-state, nested-repeat.
+  AST_nextptr    no problems.
+  NFA            not yet tried that.
+  Things which may be hard with one design
+  may be easy in another design.. interesting.
+
+* sometimes I forget to do deep_clone. thus the
+  stack behaves strange at complete different
+  places in the code. thus watch out!

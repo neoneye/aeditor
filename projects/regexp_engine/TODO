@@ -1,0 +1,339 @@
+Perl5 Syntax
+============
+
+[bug] #test_scan_long2, where close is invoked on nil.
+Solution: no idea.. what the problem really is.
+
+
+[bug] #test_scan_long1, where scan is outputting empty
+string in the result. Solution: disable captures inside lookbehind.
+
+
+* NewRegexp and Ruby's builtin Regexp class should both
+  be extended with a #number_of_captures attribute.
+  Thanks T. Onoma for suggesting this.
+
+* String#match(regexp, offset). Offset is new in Ruby 1.9.
+  I really should add this behavier.
+
+* There is difference on [^r] and [^\r].. regexp is broken
+  /[^r]/.match('rax').to_a   # => ["a"]
+  /[^\r]/.match('rax').to_a  # => ["r"]
+  puts /[^r]/.tree           #    +-Outside set="r"
+  puts /[^\r]/.tree          #    +-Outside set="r"
+
+* NewRegexp.escape.
+
+* translate \e -> \x1b
+  translate \f -> ?
+  translate \r -> ?
+  translate \t -> \x09
+  translate \v -> ?
+
+* output warnings in case of malformed regexp-strings.
+
+* [unicode-c1] posix classes 
+  \b should have knowledge about where the boundary are in unicode.
+  \w  should check accented letters.
+  [:graph:]  should also have knowledge about unicode.
+  .. many things on this list
+
+* [unicode-c1] at the moment ASCII ignorecase, are being used when
+  we deal with unicode, which may be very wrong. Hence it must be 
+  seperated and encoding specific. Must write a few tests to 
+  exercise this aspect.
+
+* [unicode-c1] \p{class}
+  where can I find more info about which properties there exists in perl?
+
+* improve web-regexp-tester
+  http://www.fileformat.info/tool/regex.htm
+
+* easy way to detect presence of this regexp-engine..
+
+
+
+Perl6 Syntax
+============
+
+* assersions
+  regexp assertions <{...}>
+  lookahead, lookbehind <after ...> <before ...>
+  subrules x=/rule/; /<x>/
+  allow code blocks to access captured subgroups
+
+* Back tracking control :,::, :::, <commit>, <cut> 
+* named captures /x := (a*)/; p x
+* hypothetical variables
+* use regexp as an iterator 
+
+
+refactoring
+===========
+
+* Make .gem release.
+
+* MyUTF8.position hack is kludgy.
+
+* place namespace AE around everything.
+
+* rename NewRegexp -> AE::Regexp.
+  rename NewMatchData -> AE::MatchData.
+
+* remove second (nil) argument for mk_repeat, mk_lookahead.
+
+* rename files 
+  source/scanner_nodes.rb        should be merged with scanner.rb
+  test/test_scanner_nodes.rb     should replace test_scanner.rb
+
+* [parser.rb] the Group class should use symbols instead of
+  constants:   PURE -> :pure   and  NORMAL -> :normal
+
+* [parser.rb] rename Wildcard -> Outside.
+  rename Literal -> Inside.
+
+* clean up iterator.. rename #create_iterator -> #begin
+  rename #create_iterator_end -> #end
+
+* [blackbox_p5.rb] assert_regex should be able to deal with errors.
+  rename #bug_gnu -> #output_gnu
+  rename #oniguruma_output -> #output_oniguruma
+
+* There are many similarities between LookaheadPositive and LookbehindPositive,
+  I think merge are possible.  Same with LookaheadNegative and LookbehindNegative.
+  However lookbehind may be subject to future experiments with leftmostlongest
+  and backrefs.. so that its probably bad to do the merge this early.
+
+
+
+Scanner issues
+==============
+
+* partial matching.. /a..b/ =~ 'abc'  #=> maybe
+  suggested by Hal Fulton, to be used in his ruby-expect lib.
+  Eivind Eklund has also expressed interest in this feature
+  to be used in his Mock class, where call sequences can be
+  recorded while being matched against a regexp, in case there
+  is being invoked an illegal call, then the regexp engine
+  should recognize this and raise an error.
+
+* AbstractSyntaxTree pretty printer should not overload
+  #inspect. Instead it should install a #pretty method.
+  When an assertion_equal for instance fails, then the
+  output is cluttered up, by this pretty-printer.
+  #inspect should just print the name of the node, and
+  nothing more.  <Literal 'a'>
+  It is only when explicit specified that the pretty-printer
+  should do its work... thus #pretty.
+
+* I have long been thinking of extending Regexp#inspect so
+  you can see the resulting parse-tree, and so that you can
+  see the steps the scanner goes through.
+  Somewhat related, there is a guy which has made a debugger
+  for regular expressions!  http://perl.plover.com/Rx/paper/
+
+
+Possible AEditor Extensions
+===========================
+
+ \%cursor%   anchor which matches the cursor
+ TODO        buffer-traversal: ignore folds
+ TODO        buffer-traversal: how to deal with wordwrap
+ TODO        buffer-traversal: same column as cursor
+ [[:lruby:]] match text which is legal ruby code
+ [[:lcpp:]]  match text which is legal c++ code 
+ (?A: ... )  look on the line above
+ (?B: ... )  look on the line below
+ (?l42:...)  look in line 42
+ (?c42:...)  look in column 42
+ (?v42:...)  look in virtual column 42
+
+
+Wish list
+=========
+
+This is only issues which I will look into if I find the 
+available time, not strictly necessary, but nice to have. 
+However these items are hard to implement.. possible candidate
+for my batchelor project.
+
+These issues are not my goal to implement (at the moment).
+However if you feel like wanting to contribute, then 
+you are welcome to try with some of these issues.
+
+* \x42 with UTF-8 encoding.
+  I am unsure about the good old \x42's behaviour.. I cannot see through
+  Onigurumas way to treat \x42. It seems to match a single byte, however
+  when attempting to match more complex multibyte values this way then
+  it behaves weird.
+  maybe extend the iterator classes with a #next_byte, #current_byte.
+  This way we can search for byte-sequences within unicode-text.
+  Another possibility would be to just look at "iterator.i", to see
+  if its a byte-stream.
+  One more issues is that I will need a match_raw_byte? flag option
+  in the MatchInside class.
+
+* \x80..\xff and \200..\377 are undefined with UTF8 encoding.
+  figure out what to do with them.
+
+* named captures
+
+* recursive  (?R)
+  that could be really useful.
+
+* conditionals  (?(?=if)then|else)
+  not sure how it works.
+
+* \G is an anchor for last match.. Ruby has it
+  then we must have it too.  Make some testcases for it.
+  How to use \G, see [ruby-talk:63006]
+
+* Hugh Sasse, suggested an operator similar to Lua's "%bxy",
+  that does +1 on "x", and does -1 on "y". This can be useful
+  for counting parentesis "%b()". However Lua are limited to
+  only one-letter patterns. What therefore can be useful are
+  an operator where words can be used as patterns.
+  Something like /(?b:begin,end)/ or /(?b:\(,\))/ .
+  Discovered problem with above syntax, its a really bad
+  idea to use (? options : ... ) syntax.  I better come
+  up with an alternative syntax, how about (?{begin}end)
+  Negative, this feature is bloat.
+  Solution instead: use code-hooks ala perl6.
+
+* lookbehind-negative / lookahead-negative leaves subcaptures empty,
+  this is because the Last node are never reached.. Solution would be
+  to make a clone when Context.raise_mismatch are invoked, later when
+  the Mismatch are rescued by the LookaheadNegative#match method, the
+  captures should be installed.
+
+* backrefs inside lookbehind, at the moment nothing happens.
+
+* left-most-longest inside lookbehind, at the moment
+  the right-most-longest rule is being used.
+
+* optimization.  In lookahead, then force greedy to non-greedy. We will 
+  may waste cpu-cycles by letting the state be greedy if we doesn't
+  need its result.
+
+* optimization ala oniguruma -  (ripped from oniguruma/HISTORY)
+  * possessivate optimization
+    a*b   => (?>a*)b 
+  * zero length repeat optimization
+    ()*   => ()?
+    ()+   => () 
+
+* possesive
+  is this important.. we already have atomic grouping.
+
+* ctrl-key \cx    where x is the letter
+  is this important.. we already have octal and hex.
+
+* meta-key \M-x
+  is this important.. we already have octal and hex.
+
+* include the 'test.rb' from oniguruma. Extract each regexp-string
+  by their suffix: ["x(/", "n(/", "r(/"]
+  I could not find any testcase which exercises 
+  alternation/repeat backtracking.. I were hoping to find an expression
+  more complicated than the /(foob|fo|o)*bar/.match("foobar")
+  Oniguruma has Ruby/BSD license.
+  name it -> test/blackbox_oniguruma.rb
+
+* run the testsuite against other engines:
+  fxruby, PCRE, Boost.
+
+
+Notes
+=====
+
+* RegexEngineDesign: Each design has its own 
+  special drawbacks, some things gets almost 
+  impossible to implement.
+  DFA            grouping and backreferences.
+  AST+recursive  repeat.
+  AST+iterator   alternation, next-state, nested-repeat.
+  AST_nextptr    no problems.. bloated.
+  NFA            no problems.. simpler.
+  Things which may be hard with one design
+  may be easy in another design.. interesting.
+
+* sometimes I forget to do deep_clone. thus the
+  stack behaves strange at complete different
+  places in the code. thus watch out!
+
+* other times I forget that the #==  (is equal)
+  operator typically checks for equallity.. not object_id's
+  I have spend much time trying to debug such situations.
+
+* misspelling can cause much confusion. 
+  similar if I define a variable, but without assigning
+  anything to it.
+
+* When making #clone methods.. then remember to use 'self.class.new'
+  so that derived classes gets cloned correct.
+
+* Sometimes I mixup  #clone and #close.. which is devastating.
+
+
+Resources
+=========
+
+0)  Google Open Directory on Regexp:
+    http://directory.google.com/Top/Computers/Programming/Languages/Regular_Expressions/Research_Papers/
+
+1)  How to do the most basic regex operations:
+    http://www.regular-expressions.info/
+    http://linux.skavt.net/teach_perl_in_21days/ch7.htm
+    man 7 re_format
+
+2)  Unicode and regex issues:
+    http://www.unicode.org/unicode/reports/tr18/
+
+3)  Writing a simple lexer:
+    http://www.rubygarden.org/ruby?LexerInRuby
+
+4)  posix regexp standard:
+    http://www.opengroup.org/onlinepubs/007904975/basedefs/xbd_chap09.html
+
+5)  wikipedia on regexp:
+    http://en.wikipedia.org/wiki/Regular_expression 
+
+6)  perl6 regexp's:
+    http://www.perl.com/pub/a/2002/06/04/apo5.html
+    http://www.perl.com/lpt/a/2002/08/22/exegesis5.html
+
+7)  regex proposal:
+    http://anubis.dkuug.dk/jtc1/sc22/wg21/docs/papers/2002/n1386.htm
+
+8)  IEEE Std 1003.1-2001: POSIX Chapter 9, Regular Expressions
+
+9)  ECMA-262: ECMAScript Language Specification
+
+10) The selfish class... improve package to get success
+    http://www.joeyoder.com/papers/patterns/Selfish/selfish.html
+
+
+Admin Notes
+===========
+
+When checking out from CVS, then remember to do so:
+
+server> ln -s source regexp
+server> setenv RUBYLIB `pwd`
+server> ruby -e "p (require 'regexp/misc.rb')"
+true
+server>
+
+
+Or if you want to checkout a cvs-branch:
+
+
+setenv CVS_RSH=ssh
+cvs -z3 -d:ext:msparshatt@rubyforge.org:/var/cvs/aeditor co projects/regexp_engine
+cd projects/regexp_engine
+setenv RUBYLIB `pwd`
+ln -s source regexp
+cvs up -r character_class
+cvs status README
+
+Ensure that the 'cvs status' indicates the right branch.

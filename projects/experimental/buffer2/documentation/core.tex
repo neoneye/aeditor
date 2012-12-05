@@ -1,0 +1,120 @@
+\documentclass[a4paper,12pt]{article}
+\author{Simon Strandgaard}
+\title{\AE ditor 2.x Internals}
+\begin{document}
+\maketitle
+
+\begin{abstract}
+How is \AE ditor working internally. How is things implemented,
+such as folding, syntax coloring, bookmarks, edit-strategies and undo. 
+What decisions have been made. Talk about wide chars.
+\end{abstract}
+
+\section{Overview}
+The core is divided into a \fbox{Model View Controller}.
+
+
+\section{Model}
+It maintains one long UTF-8 encoded string, which contains all
+lines joined together. The benefits by having them in one string; 
+that its quick to do take a snapshot of the entire text for undo/redo. 
+That its fast to do replace. It allows searching for multiline patterns.
+
+It maintains an array of integers, where each integer corresponds to 
+the number of bytes a given line occupies. This makes its quick to 
+do translations between position and byte-offsets.
+
+The model has 3 important functions: p2b, b2p and replace.
+Where only replace is the destructive function.
+This narrow API helps ensuring that the models integrity stays good, 
+no matter how hostile operations there are invoked.
+
+Simple edit operations can be accomplished by using replace. For
+instance the operation of inserting one letter at the cursor position,
+is an erase nothing and insert a new letter. The operation of
+issuing a backspace, is an erase the letter to be deleted and
+insert nothing. More complex edit operations may require invoking 
+replace multiple times.
+
+
+\subsection{Invariants}
+The string length must always be syncronized with the byte array.
+\begin{equation}
+\textrm{text.size} \quad = {\sum_{b \in \textrm{ bytes}} \!\!\! b}
+\end{equation}
+
+Text inserted must always be wellformed UTF-8, it must always
+be inserte inbetween two other glyphs (which replaces ensures for us).
+
+\subsection{Position to byte}
+Converting from $x,y$ position to a byte offset.
+$$
+\textrm{findb}(b,n) = \cases{
+  \textrm{findb}\bigg(\textrm{gbytes}(b) + b, n-1\bigg), 
+    & for $n \geq 1$.\cr
+  b & otherwise.}
+$$
+\begin{equation}
+\textrm{p2b}(x,y) = \textrm{findb}\bigg(
+  \sum_{i=0}^{y-1} \textrm{bytes}_i \quad, x\bigg)
+\end{equation}
+Where $\textrm{gbytes}(\textrm{byte})$ translates a byte 
+index into a number of bytes the glyph occupies.
+It relies on one of the nice things of UTF-8, that you can tell
+how long a glyphs byte sequence are, just by looking at 
+it's first byte. 
+BTW: This is always true $ \textrm{p2b}(0,0) \rightarrow 0 $.
+
+\subsection{Byte to position}
+Converting from byte offset to a $x,y$ position.
+$$
+\textrm{findy}(b,y) = \cases{
+  \textrm{findy}(b - \textrm{bytes}_y , y+1),
+    & for $ b \geq \textrm{bytes}_y $.\cr
+  y & otherwise.}
+$$
+$$
+\textrm{findx}(b,n,x) = \cases{
+  \textrm{findx}(b, n + \textrm{gbytes}(n), x+1),
+    & for $ b \geq n + \textrm{gbytes}(n) $.\cr
+  x & otherwise.}
+$$
+\begin{equation}
+\textrm{b2p}(b) = \bigg< \textrm{findx}\bigg(b, 
+  \sum_{i=0}^{\textrm{findy}(b,0)} \!\!\!\!\!\! \textrm{bytes}_i, 0\bigg);
+  \quad \textrm{findy}(b,0) \bigg>
+\end{equation}
+BTW: This is always true $ \textrm{b2p}(0) \rightarrow <0,0> $.
+
+
+\subsection{Replace}
+The model is observable. Whenever a replacement operation is 
+about to take place, then the observers are notified. This way
+the views can stay in sync with the model.
+\begin{enumerate}
+\item notify observers before replacement.
+\item replace area with new text
+\item notify observers after replacement.
+\end{enumerate}
+The byte array is updated accordingly to the inserted text.
+
+
+\newpage
+\section{View}
+In the future there probably will be more views. But right now
+there exists only the edit view, which this section is about.
+
+A view instance is attached to a model, whenever changes is made
+to the model, then the view gets notification. The view can be 
+attached to a canvas, on which the view can render glyphs.
+The view can have attached a lexer, which deals with syntax coloring. 
+Further more incoming events are being dispatched to the view. 
+
+Lots of things is going on in the view. I never really like
+having so many things going on at the same time. I like isolated and
+encapsulated stuff. Its a mixed View / Mediator pattern which feels 
+ackward, this is the only one of the GoF patterns that I never really 
+have understood. Maybe I learn, maybe I don't.
+
+
+\end{document}

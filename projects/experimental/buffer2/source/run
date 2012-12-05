@@ -1,0 +1,4 @@
+#!/usr/bin/ruby
+#cmd = "bash -c 'ulimit -d 20000 -l 20000 -s 10000 -v 5000; ruby main_tui.rb'"
+cmd = "bash -c 'ulimit -d 10000 -s 10000; ruby main_tui.rb'"
+system(cmd)

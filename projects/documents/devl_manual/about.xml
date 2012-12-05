@@ -1,0 +1,69 @@
+<section>
+<title>About this document</title>
+<para>This document describes the internals of AEditor 
+that an AEditor-developer needs to know. It
+assumes knowledge of Ruby. This document is a work in
+progress.
+</para>
+
+<section>
+<title>Synopsis</title>
+<para>Reading this manual will hopefully provide you with
+enough understanding of AEditor's internals, so that you will
+be able to specialize/extend AEditor for your own needs.
+</para>
+</section>
+
+<section>
+<title>Audience and purpose</title>
+<para>This document is intented for people who want to
+embed the AEditor widget into their editor. Also developers
+who want to tweak AEditor's internals. Myself as a
+reminder of how things is working.
+</para>
+</section>
+
+<section>
+<title>Document organization</title>
+<para>placeholder
+</para>
+</section>
+
+<section>
+<title>How to use this document</title>
+<para>Read it and mail me comments and suggestions.
+</para>
+</section>
+
+<section>
+<title>Document conventions</title>
+<para>Placeholder
+</para>
+<variablelist><title>Terminologi</title>
+<varlistentry><term>Ruby</term>
+<listitem><para>The best OO programming language so far (my opinion).
+AEditor is written in Ruby.
+</para></listitem>
+</varlistentry>
+</variablelist>
+</section>
+
+<section>
+<title>Copyright</title>
+<para>By Simon Strandgaard. This is a free document,
+everyone is welcome to read it. You are allowed 
+to print it out. You are NOT allowed to charge
+money for this document. If you do break these rules,
+then any money related to this document, must be
+forwarded to me (Simon Strandgaard) and I will 
+decide what to do with them. Please break these 
+rules and send me some money/beers :-)</para>
+</section>
+
+<section>
+<title>Credits</title>
+<para>Ville Aine, spell corrections to this document. 
+</para>
+</section>
+
+</section>

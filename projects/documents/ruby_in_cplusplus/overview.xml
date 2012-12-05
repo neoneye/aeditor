@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<section><title>Overview</title> 
+<important><para> 
+This document is work in progress and still in an early stage.
+Your suggestions is welcome
+[<ulink url="http://www.rubygarden.org/ruby?EmbedTutorial">EmbedTutorial</ulink>].
+</para></important>
+<para>
+In this document I will descripe how to
+embed the &ruby; interpreter into &cpp; 
+[<ulink url="http://www.rubygarden.org/ruby?WhyEmbedRuby">WhyEmbedRuby?</ulink>,
+<ulink url="http://www.rubygarden.org/ruby?EmbedRuby">EmbedRuby</ulink>]
+and provide you with a skeleton you easily can build upon.
+</para>
+
+<para>We want to share some of our classes between &cpp; and &ruby;, 
+so that no difference can be feelt. This task is non-trivial and 
+therefore the basic concepts needs to be explained.
+In this text we will accomplish the following:
+</para>
+
+<highlights><itemizedlist>
+<listitem><para>&cpp; classes accessable from &ruby;.</para></listitem>
+<listitem><para>&ruby; classes accessable from &cpp;.</para></listitem> 
+<listitem><para>translate exceptions between &ruby; and &cpp;.</para></listitem> 
+<listitem><para>let &swig; do all the hard work for us.</para></listitem> 
+</itemizedlist></highlights>
+
+<para>I am assuming that the reader has some experience with
+writing &ruby; extensions, has an understanding of UML diagrams. 
+No previous experience with &swig; is required.
+This code should work with <application>G++3</application>, 
+<application>GNU-make</application>, <application>Ruby-1.8.0</application>.
+For the [Combining Everything] you might need 
+<application>GNU-autoconf</application>, <application>SWIG-1.3.18</application>.
+</para>
+
+<para>Please share your experiences, this might help others!
+comments, suggestions, reviews, bugs, bugfixes, code.
+All kinds of contributions is welcome :-) 
+</para>
+
+<section><title>Download</title>
+<para>
+I said that I would provide you with a skeleton which you 
+freely can built upon, no credit is necessary.
+</para>
+
+<para>
+Here it is 
+[<ulink url="http://rubyforge.org/download.php/84/rubyembed-0.2.tar.gz"><filename>rubyembed-0.2.tar.gz</filename></ulink>]. 
+I admit it looks overwhelming, there is not much functionality
+and its spread out over many different files! Be sure to read the
+[combining everything] section of this tutorial.
+</para>
+
+<para>
+There is also a <emphasis>simplified</emphasis> version where all code 
+is in one-file (less than 500 lines of code). Certain vital things 
+has been left out.
+[<ulink url="main.cpp"><filename>main.cpp</filename></ulink>, 
+<ulink url="test.rb"><filename>test.rb</filename></ulink>, 
+<ulink url="Makefile"><filename>Makefile</filename></ulink>].
+You may have to adjust the <filename>Makefile</filename> to your
+own environment. 
+</para>
+
+<para>
+<citetitle>Don't Use Wizard Code You Don't Understand</citetitle>
+[<ulink url="http://www.pragmaticprogrammer.com/ppbook/extracts/wizards.html">wizards?</ulink>]. There is a few gotcha's in this code, therefore I
+have some explaining to do!
+</para>
+</section>
+
+<section><title>An Example</title>
+<!--
+What is it that I mean, when I say embedding ?
+<para>Her skal der stå noget om:
+*	hvordan vi godt kunne tænke os at ruby skal være embeddet
+	DVS. At man slet ikke lægger mærke til at det er embeddet!
+*	Hvorfor er dette et godt eksempel?
+	Fordi det demonstrere de 2 ting som vi ønsker at opnå,
+	nemlig: at vi kan kalde ruby fra c++ og at 
+	vi fra c++ kan kalde ruby.
+</para>
+-->
+
+<para>Lets start out with a real-world example (a typical behavier 
+in a texteditor). This sequcence-diagram shows the two most 
+vital embedding-operations.
+
+<itemizedlist>
+<listitem><para>&cpp; calling &ruby;.</para></listitem> 
+<listitem><para>&ruby; calling &cpp;.</para></listitem>  
+</itemizedlist>
+</para>
+
+<figure><title>Do some calls + returns</title>
+<graphic fileref="example.png" /></figure>
+
+<para>The following &cpp;code is for the lefthand side (<emphasis>USER</emphasis>).
+Observe that the <classname>View</classname> class is undeclared, 
+this is covered in the next section.</para>
+
+<programlisting><![CDATA[class ViewQT : public View {
+public:
+    void repaint() {
+        cout << "repaint!" << endl;
+    }
+};
+
+int main() {
+    ViewQT v;
+    v.insert();
+    return 0;
+}
+]]></programlisting>
+
+<para>The following &ruby;-code is for the righthand side 
+(<emphasis>RUBY</emphasis>).
+Observe that the <classname>Redirect</classname> class is undeclared,
+this is covered in the next section.</para>
+
+<programlisting><![CDATA[class RubyView < Redirect
+    def insert
+        repaint
+    end
+end
+]]></programlisting>
+
+<para>
+Calling in both directions (&cpp; &lt;-&gt; &ruby;) is
+important. But in order to do this some glue-code is necessary.
+</para>
+</section>
+
+<section><title>A Wormhole Between Two Worlds</title> 
+<para>Connecting those two different worlds is what this
+tutorial is all about!
+The following diagram illustrates the necessary classes
+(<emphasis>template method</emphasis> pattern). 
+Do not get too scared :-)
+</para>
+<figure><title>Class diagram</title>
+<graphic fileref="classes.png" /></figure>
+<para><classname>ViewQT</classname> is a &cpp; class which has 
+implemented the <function>repaint</function> function. Its 
+responsible for rendering itself as an QT widget.
+</para>
+<para><classname>RubyView</classname> is a &ruby; class which has
+implemented the <function>insert</function> function. Its
+responsible for inserting text into the buffer. When the text
+has been inserted it invokes <function>repaint</function>.
+</para>
+<para><classname>View</classname> serves as a baseclass for all &cpp; frontends.
+<varname>self</varname> holds one instance of the <classname>RubyView</classname> 
+class.
+</para>
+<para><classname>Redirect</classname> serves as a baseclass for the &ruby; backend.
+With help of this class we are able to call the overloaded virtual function
+<function>repaint</function> in <classname>ViewQT</classname>. This class is
+memory-managed by &ruby;. Here we have a &swig; candidate!
+</para>
+
+</section>
+
+<section><title>Troubleshooting</title> 
+<para>If trouble strikes you might try these options:</para>
+<itemizedlist>
+<listitem><para>Do a quick browse through this tutorial plus the
+	supplyed code (the tar.gz file).</para></listitem> 
+<listitem><para>Checkout the mentioned projects in the "Resources" 
+	section.</para></listitem> 
+<listitem><para>google</para></listitem> 
+<listitem><para>If you could not find anything about it, then
+	post it on the [comp.lang.ruby] newsgroup.</para></listitem> 
+</itemizedlist>
+</section>
+
+</section>

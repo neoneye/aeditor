@@ -1,0 +1,23 @@
+{
+    IBClasses = (
+        {CLASS = AEditor; LANGUAGE = ObjC; SUPERCLASS = NSApplication; }, 
+        {
+            ACTIONS = {
+                chooseAlgorithm = id; 
+                decreaseFontSize = id; 
+                increaseFontSize = id; 
+                openFontRequester = id; 
+                refreshCanvas = id; 
+                setLetterSpacing = id; 
+                setLineSpacing = id; 
+            }; 
+            CLASS = BufferController; 
+            LANGUAGE = ObjC; 
+            OUTLETS = {buffer = canvas; }; 
+            SUPERCLASS = NSObject; 
+        }, 
+        {CLASS = FirstResponder; LANGUAGE = ObjC; SUPERCLASS = NSObject; }, 
+        {CLASS = canvas; LANGUAGE = ObjC; SUPERCLASS = NSView; }
+    ); 
+    IBVersion = 1; 
+}

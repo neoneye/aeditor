@@ -1,0 +1,53 @@
+<section>
+<title>Setup</title>
+<para>placeholder.
+</para>
+
+<section>
+<title>XML_CATALOG_FILES</title>
+<para>To tells <application>xsltproc</application> that it should
+look for a <filename>catalog.xml</filename> in current directory. 
+Your should add this line to your <filename>.tcshrc</filename> config-file:
+<screen>setenv XML_CATALOG_FILES catalog.xml 
+</screen>
+</para>
+<para>Leaving it out, then <application>xsltproc</application> will 
+use the <filename class="directory">/etc/xml/catalog</filename> as 
+its catalogfile.</para>
+<para>Validate that the environment variable is set correct.
+<screen>shell% env | grep XML_CATALOG_FILES
+XML_CATALOG_FILES=catalog.xml
+shell%
+</screen>
+</para>
+</section>
+
+<section>
+<title>Adjusting the Skeleton</title>
+<para>The file <filename>catalog.xml</filename> is specialized
+to my machine, pointing to things in my homedir. Just change the
+name of my homedir (neoneye) into your own.
+<screen>
+"file:///home/neoneye/docbook/xml/"
+"file:///home/neoneye/docbook/xsl/"
+</screen>
+</para>
+</section>
+
+<section>
+<title>Validate that things works</title>
+<para>Lets go for the big, and see if everything works. 
+Type <command>make</command> (on my pentium350 it takes about 9 seconds)
+<screen>shell% make
+xsltproc \
+--output index.html \
+xhtml_onechunk \
+main.xml
+shell%
+</screen>
+If you got no errors nor warnings, then a <filename>index.html</filename>
+file has been outputted.
+</para>
+</section>
+
+</section>

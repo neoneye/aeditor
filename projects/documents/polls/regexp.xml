@@ -1,0 +1,54 @@
+Where have you heard about this project?
+- in the ruby newsgroups
+- in the perl newsgroups
+- other forums
+- RSS news feeds
+- recommendation by friend
+
+Learned regexp-syntax?
+- yes (at school)
+- yes
+- no
+
+Do you know the theory about how regexp works?
+- yes
+- no
+
+How do you intend using this regexp module?
+- play around with perl6
+- study how the engine works
+- use in own project
+
+Are you willing to submit bug-reports/feature-requests?
+- yes
+- no
+
+Have you ever used
+- look behind
+- look ahead
+- recursive expressions
+- nested quantifiers
+- don't backtrack
+- backreferences
+- inline options
+- non capturing groups
+- non greedy
+
+Which charset do you plan to use?
+- unicode
+- big5
+- ascii
+
+Where have you used regexp 
+- flex/bison/yacc
+- grep/sed/awk
+- ruby
+- perl
+- emacs
+- vim
+- javascript
+- other
+
+Are you a programmer?
+- yes
+- no

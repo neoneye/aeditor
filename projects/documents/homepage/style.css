@@ -1,0 +1,20 @@
+p.cvs {
+	font: 10px Impact;
+	text-align: center;
+	padding: 0px 0px 0px 0px;
+	margin: 0px 0px 0px 0px;
+}
+hr { 
+	background-image: url(graphics/seperator.png);
+	background-repeat: repeat-x;
+	border: 0;
+	height: 16px;
+}
+div.visible {
+	/*background: url(graphics/texture1.png) fixed;*/
+	background: #929292; 
+}
+body { 
+	/*background: url(graphics/texture2.png) fixed;*/
+	background: #555; 
+} 

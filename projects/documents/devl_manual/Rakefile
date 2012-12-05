@@ -1,0 +1,47 @@
+task :default => :chunks
+
+def xsltproc_options(stylesheet)
+	[
+		"--output index.html",
+		"--stringparam html.stylesheet style.css",
+		"--stringparam use.id.as.filename \"\"", 
+		stylesheet,
+		"main.xml",
+	].join(" ")
+end
+
+task :chunks do
+	sh "xsltproc " + xsltproc_options("xhtml_chunks")
+end
+
+task :onechunk do
+	sh "xsltproc " + xsltproc_options("xhtml_onechunk")
+end
+
+task :valid_catalog do
+	sh "xmllint --valid --noout catalog.xml"
+end
+
+task :valid_main do
+	sh "xmllint --valid --noout main.xml"
+end
+
+task :validall => [:valid_catalog, :valid_main]
+
+task :built_regexp do
+	sh "ruby regexp_syntax_reference.rb > regexp_syntax_reference.xml"
+end
+
+UPLOAD_DEST = "neoneye@rubyforge.org:/var/www/gforge-projects/aeditor/developer_manual/"
+
+task :upload do
+	sh "scp *.html style.css #{UPLOAD_DEST}"
+end
+
+task :upload_all do
+	sh "scp * #{UPLOAD_DEST}"
+end
+
+task :upload2 do
+	sh "cp * ~/web/test/."
+end

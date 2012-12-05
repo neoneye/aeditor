@@ -1,0 +1,63 @@
+dnl Send me through autoconf and you get a "configure" file
+dnl The Rubyembed Project
+dnl $Id: configure.in,v 1.2 2003/09/20 14:20:23 neoneye Exp $
+
+AC_INIT
+
+dnl --------------------------------------------
+dnl       dertermine location of RUBY (auto)
+dnl --------------------------------------------
+
+dnl determine location of ruby
+AC_PATH_PROG(ruby_path, ruby, no)
+if test $ruby_path = no ; then
+	AC_MSG_ERROR(Cannot find Ruby! This program requires Ruby-1.8.0)
+fi
+
+dnl determine if the installed Ruby is suitable for us
+if `$ruby_path -e 'exit 1 if VERSION >= "1.8.0"'` ; then
+	AC_MSG_ERROR(Your Ruby is too old! At least Ruby-1.8.0 is required)
+fi
+
+dnl locate "ruby.h", "intern.h"
+ruby_h_dir=`$ruby_path -r mkmf -e 'print Config::CONFIG[["archdir"]]'`
+RUBY_CFLAGS="-I$ruby_h_dir"
+
+dnl locate libruby-static.a + extra libraries (libcrypt)
+ruby_lib=`$ruby_path -r mkmf -e 'c=Config::CONFIG; libs=c[["libdir"]]+"/"+c[["LIBRUBY"]]+" "+c[["LIBS"]]; print libs'`
+RUBY_LIBS=$ruby_lib
+
+AC_SUBST(RUBY_CFLAGS)
+AC_SUBST(RUBY_LIBS)
+
+
+dnl --------------------------------------------
+dnl          do the configure stuff
+dnl --------------------------------------------
+VERSION=0.3
+PACKAGE="rubyembed"
+
+AC_SUBST(VERSION)
+AC_SUBST(PACKAGE)
+
+AM_INIT_AUTOMAKE($PACKAGE, $VERSION)
+
+AM_CONFIG_HEADER(config.h)
+
+AC_CANONICAL_SYSTEM
+
+AC_PROG_CXX
+AC_PROG_LIBTOOL
+
+AC_OUTPUT( \
+	Makefile \
+	source/Makefile \
+)
+
+echo --------------------------------
+echo "       NAME: "$PACKAGE $VERSION
+echo
+echo "  RUBY_LIBS: "$RUBY_LIBS
+echo "RUBY_CFLAGS: "$RUBY_CFLAGS
+echo
+echo configure complete, now type \'make\'

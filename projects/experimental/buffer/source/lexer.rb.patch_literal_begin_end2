@@ -1,0 +1,18 @@
+diff -rN -u miscprogs-old/ruvi/lib/3rdparty/aelexer/lexer.rb miscprogs-new/ruvi/lib/3rdparty/aelexer/lexer.rb
+--- miscprogs-old/ruvi/lib/3rdparty/aelexer/lexer.rb    2004-10-13 10:22:08.163786736 +0200
++++ miscprogs-new/ruvi/lib/3rdparty/aelexer/lexer.rb    2004-10-12 21:39:08.000000000 +0200
+@@ -534,11 +534,13 @@
+                        # we don't have to do balancing
+                        text1 = good
+                        text2 = nil
+-                       re = /\A%[wWqQrsx]?(.)(?:[^\1\\\\]|[\\\\].)*?\1/
++                       re = /\A(%[wWqQrsx]?(.))(?:[^\2\\\\]|[\\\\].)*?\2/
+                        m = re.match(good)
+                        if m
+                                #p "literal normal"
+                                text1 = good.slice!(0, m.end(0))
++        definer = text1.slice!(0, m.end(1))
++        format2(definer, :literal_definer)
+                                text2 = good
+                        else
+                                #p "literal propagating normal"

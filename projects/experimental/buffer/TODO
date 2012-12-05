@@ -1,0 +1,322 @@
+* fix rendering fuckups
+  senario#1 in cua mode
+  press shift
+  press page-down
+  press page-down
+  press ctrl-z
+
+* composite operations does locking inside Buffer.
+  The locking system (#obtain_render_lock) inside Viewfox
+  is redundant.. remove it.
+  I tried remove the #obtain_render_lock but then AEditor
+  began crashing.. I must do this a day when I have better time.
+
+* add a reload file shortcut, for instance F5.
+  this can be useful to inspect logfiles.
+
+* move_down sometimes doesn't do render_dirty correct.. but only
+  when scrolling is occuring.
+
+* keybindings.. CUA
+  cleanup viewfox.rb where we choose the keymap.
+
+* Add commandline option where you can check if the configuration
+  files are setup correct. And see an overview of the values
+  defined in them.   aeditor --configtest
+
+* fix the match-bracket code... so it works.
+
+* make scrollbar operations undoable.
+  This kind of operation is interesting. It would be silly
+  to push lots of mementos on the undo stack, if we just are
+  moving up/down for a longer period. It is not desireable
+  that the user should undo all these events that may be
+  generated from scrolling. Instead it is more desirable to
+  update the scroll2-position of the last event on the stack.
+
+* when mouse-cursor has been inactive for 5 seconds, then
+  hide it.
+
+* CTRL-J = join line
+
+* CTRL-K = kill line
+
+* CTRL-backspace = deleteword
+
+* the DEL'ete key's behavier when pulling up the
+  next line.. destroys cursor_x.. fix it.
+
+* Goto-bookmark doesn't do render_dirty correct.
+
+* XML syntax coloring.
+
+* save selection to file.
+
+* disable output to console.
+
+* autodetect file type by looking at shebang lines.
+
+* when invoking saveas.. then it should recognize the
+  file type depending on its suffix.. At the moment nothing
+  happens... saving a plaintext file as a ruby file doesn't
+  switch correct to ruby mode.
+
+* in case of an exception then catch it, spawn a dialogbox that
+  says an exception has occured and attempt to continue, so the
+  user doesn't loose any of his work.
+
+* on the last line.. there is no visible dot.. which can make
+  it difficult to determine where exactly the end of that line are.
+
+* when pressing 2 arrow keys then scroll diagonal.
+
+* refactoring
+  rename #output_cells -> #sync_render_cache
+  rename #lexer_cache_valid -> #lexer_valid
+  move the Viewfox#lines into Buffer::View.
+
+* double rendering occurs in selection-mode, if one inserts letters
+  at the end of the line causing that the view scrolls.
+
+* visual bell, when move_up hits the top of the file.
+  when home is pressed, but the cursor cannot move.
+
+* when x-scrolling occurs, then issue a
+  blit-copy rather than repainting everything.
+
+* pagedown should recycle lexer_cache_states.
+
+* swap_upper/lower are sluggish.
+  I think these operations crashes if you do a swap_upper on the
+  top-most line... same with swap_lower+bottom of file.
+
+* in selection-mode it takes forever to do horizontal scrolling.
+
+* avoid printing to the console on windows.. because it is
+  slowing down the editor, so its painful to use.
+  reported by Kaspar Schiess.. Thanks.
+
+* quit should ask the user if data should be discarded.
+  a better way to terminate the window would actually be nice.
+
+* indent-size independent from tabsize.
+
+* ctrl-home/end doesn't do anything.
+
+* if one hits key_end more than one time, then the view should
+  be centered around the cursor. This way the annoying feeling
+  of horizontal scrolling can be reduced.
+
+* automatic repaint of view. make semaphore so that operations
+  such as Find /FindAgain can repaint them selves, without
+  invoking the repaint code.
+  locking must be done inside View class.. at the moment I do
+  it in the viewfox class which sux.
+
+* search_last_pattern should be shared between multiple buffers.
+
+* swap_upper/lower are not robust.. if we tries to swap with
+  the buffertop/bottom.. then it fails.
+
+* via the .aeditor configuration file, it should be possible
+  to change the default setup.
+
+* menu panel: change-mode for current buffer.. show list of
+  available modes to choose among.
+
+* replace remaining occurencies.
+
+* both find/replace should center the view around the selection.
+  The current problem are that only a little part of the
+  selection are visible.. I want to be able to see it all.
+  it would be nice if the display were centered around the
+  selection.
+
+* search backwards.
+
+* find expression/ignorecase.
+
+* clean up view/model, so that view doesn't directly
+  manipulate in the model (which it does now).
+
+* deal with multiple encodings
+
+* figure out how to propagate error-lexing state around, for
+  instance if one types: 
+  '0b00123'  then  '23' should be colored RED.
+  '0xdefgh'  then  'gh' should be colored RED.
+  '0456789'  then  '89' should be colored RED.
+
+* refine Ruby-lexer
+  class<<self; is not heredoc.
+  (r<<16)|(g<<8)|b  is not heredoc.
+  options after regexp literal  %r{abc}io    
+  this heredoc is valid   <<"end;"
+  escaping with hex/octal/questionmark  \x20  \040  \C-v
+  the shebang line
+  interpolated code  "#{code}", watchout about "#{'}'}"
+  interpolated gvars "ab#$ab(ab)", where $ab = 42
+  interpolated ivars "ab#@ab(ab)", where @ab = 42
+
+* refine Cpp-lexer
+  defines after a mcomment..  e.g  /*comment*/ #define something
+  catch more error situation
+
+* folding
+
+* provoke more bugs in Editor::ThroughTabs 
+  and Editor::VirtualSpace strategy.
+
+* perhaps make special case of View#move_home
+  when indentationpoint=0
+
+* <gnome_erc> neoneye: a feature i think is useful and quite 
+  simple to implement: a quick way to jot down random notes/thoughts. 
+  press a key and a blank buffer is presented to you where you type 
+  the random notes and close it by a key (same key?). upon closing 
+  it, that note will be appended to some file, say, .notes
+  <gnome_erc> neoneye: the note should be time-stamped automatically, 
+  for convenience.
+
+* add emacs keybindings. The first half page of this URL should
+  be the most important ones.
+  http://www.cs.indiana.edu/~chaynes/c311/s95/emacs-binds.html
+
+* extend clipboard with a dynamic menu of the latest 10 copies.
+
+* ruby-specific word-left/right.
+
+* ruby-specific intelligent indent.
+
+* if another application modifies the file in the meantime,
+  then spawn a dialog.. that the buffer has been changed.
+
+* buffer-load, should prevent double-loading.. also
+  buffer-saveas, should prevent double-saving
+  both situation would cause 2 buffers with one filename.
+  thats really bad.
+
+* aeditor.cmd file doesn't work on windows98. Apparently
+  this is an windowsxp thing. What should I do?
+  distribute a aeditor.bat file also ?
+
+
+ ___________________________________________________
+/                                                   |
+| You welcome to help me with the following issues  |
+| The top-most entries are the most important ones. |
+| If you decide to contribute, then please contact  |
+| me first, so we can prevent double effort.        |
+|___________________________________________________/
+
+* [fxruby] pulldown menu steals focus from editor-widget.
+  if I click on the pulldown menu, then focus is not transfered
+  back to the editor. I asked on the fox-users mailinglist but
+  it seems not to be possible.. however a hack could be made
+  where a timer are used. I cannot decided what to do.
+
+* [fxruby] using the mouse-wheel should result in scrolling.
+
+* [fxruby] scroll by holding middle button down.
+
+* [fxruby] add tabbar.
+
+* [fxruby] dynamic menuitem for Begin recording / Stop recording.
+
+* [fxruby] the dynamic menu of open buffers randomly recieves 
+  keyevents. for instance CTRL-2 switches to buffer 2 as its 
+  suppose to.  but CTRL-1 doesnt do anything.
+
+* [fxruby] both search and replace dialogs spawns at different 
+  locations. These should of cause keep the position.
+  the replace dialog spawns at different places.. this is annoying.
+  it should spawn the same place as it was positioned last time.
+  if I select yes it'll insert the subs. text even though there's no match
+
+* [fxruby] ThemeDialog doesn't remember its position.
+
+* [fxruby] alpha channel partially works on windows.
+  I need more info about what the problem are.
+
+* [fxruby] limitation: dynamic menu of buffer names can only
+  contain 10 entires.. if more buffers are open, then
+  they will not appear in the menu.
+
+* [fxruby] dialog windows should be non-modal.
+  ThemeDialog, PromptReplaceDialog should not be modal.
+  Parent window is now non-modal.. so this todo should now be possible.
+
+* [fxruby] fullscreen mode doesn't work on windowsXP. It makes a small 
+  window in the top-left corner instead. 
+  problem. windowsxp (reported by several)
+  works... windows98 (reported by CoryK)
+  works... kde3.3    (reported by neoneye)
+
+* [fxruby] the aeditor process doesn't show up in the taskbar on win2K. 
+  by invoking 'window.show(PLACEMENT_SCREEN)' between application.create
+  and application.run make it appear in the taskbar.. however then
+  the hidden mainwindow is no longer hidden. A hack is needed, so
+  that it both appears in the taskbar, and has a hidden mainwindow
+  or eventually a better solution to the fullscreen mode hack.
+
+* popup-menu: if there is a bookmark on the line.. then
+  show the 'clear bookmark' menu-item.
+  in case there isn't any bookmark.. then show the 
+  'place bookmark' menu-item.
+
+* clicking with mouse should change selection.. etc.
+
+* if one tries to open a directory, then it raises an exception.
+
+* on windows, look at the 'USERPROFILE' in order to determine
+  where the homedir are. Alternatively may the 'HOMESHARE' contain
+  path to the homedir. I have been suggested to name the dotfile 
+  as 'aeditorrc'. With the zip file I should ship the 'aeditorrc' file.
+
+* add a menuitem, named 'edit config', which opens the dotfile.
+
+* ThemeDialog should provide a short description of each color pair,
+  so its easier to build a custom theme.
+
+* find/replace should write a short summary to the statusbar.
+
+* extend the config with:
+  autoindent = true/false
+  fontsize = ?
+  fontfamily = ?
+
+* statusbar takes too long time to show status from the
+  operation that has been executed.
+
+* improve usability of Theme dialog.
+  The followin suggestion is from botp.
+  I would prefer that your custom theme layout follows the
+  style of Change fonts. This would ready your editor in 
+  case you extend themes to include fonts (not just color, 
+  and thus merging the two). And besides, the preview would 
+  be great too.
+
+* improve usability of Find dialog.
+
+* improve usability of Replace dialog.
+
+------------------------------------------------
+Switching to AEditor
+
+<neoneye_> jpedrosa: dblack: im curious to what issues I should add 
+ that would make you switch to aeditor ?
+<jpedrosa> at least a tabbar that shows 10 open files. maybe a session 
+ manager. I usually code with Scite, which isn't very far away from 
+ your editor. I just don't do much FXRuby to help you.
+
+
+Florian Gross
+> Q. What features is missing so it fits your needs?
+The frequently mentioned code-structure tree and a tabs-like front end 
+for buffers.
+
+Batsman
+<__me> neoneye: keep in mind that right now, the main reason not to 
+use aeditor :P is the lack of real keybindings :P
+
+<end of document />

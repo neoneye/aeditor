@@ -1,0 +1,67 @@
+TODO
+*	rename Multiway -> Parallel, and make a full-blown
+	iterator primitive out of it. Thanks Martin DeMello.
+
+*	iterator.next while iterator < found_context.captures[1]
+	is slow.. Make a primitive for letting the iterator
+	being repositioned. Depending on the kind of iterator
+	it can be custom optimized. 
+
+*	rename Array#create_iterator -> #iterator
+
+*	Add an #iterator method to Enumerable, which makes an
+	forward iterator.
+
+*	See if brackets in Concat.new([i1, i2, i3]) can be
+	prevented..  at the moment I have no clue to how to do it.
+
+*	rename ProxyLast -> ForwardWithMemory
+
+*	make a BackwardWithMemory class (similar to ProxyLast).
+
+*	java-iterators has a #remove method. It can either
+	raise UnsupportedOperation or in case #remove are
+	invoked when #is_done?==true# it raises IllegalState.
+
+*	DecodeUTF8#close, ProxyLast#close does only close itself,
+	without closing the iterator behind the proxy.
+	Should I make an ownership-strategy where iterators
+	gets closed by the proxy ?
+
+*	bound checks on Collection#current=(val) would be nice.
+
+*	A #insert method could be useful too.
+	Yes.. a cleaner way to insert elements would be nice.
+
+*	A #replace method could be useful too.
+
+*	add some more STL operators.
+
+*	Ruby-1.8.1 has 'generator.rb'. It has a nice concept
+	of generate by yield.
+
+If you have ideas to what there can be done, then please
+contribute. Drop me a mail via this message-board:
+http://rubyforge.org/forum/forum.php?forum_id=46
+
+
+Internals
+=========
+
+elements:    [ element#0 , element#1 , element#2 , ... element#N ]
+             ^           ^           ^           ^               ^ 
+positions:   0           1           2           3              n+1
+
+
+In order ot extract element#2, we can do several things:
+
+  p elements.create_iterator(2).current #=> 2
+
+
+  i1 = elements.create_iterator(2)
+  p Array.copy_n(i1, 1)   #=> [2]
+
+
+  i1 = elements.create_iterator(2)
+  i2 = i1.clone.next
+  p Array.copy_n(i1, i2)   #=> [2]

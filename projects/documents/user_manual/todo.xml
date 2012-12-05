@@ -1,0 +1,24 @@
+<section>
+<title>TODO</title>
+<para>Makefile#valid  is terrible slow. Cant I do some kind of
+cashing of the dtd's ?
+</para>
+
+<para>html output should be connected with a CSS stylesheet.
+</para>
+
+<para>output MAN/INFO files.
+</para>
+
+<para>output should be stored in a seperate dir.
+</para>
+
+<para>HTML chunk's should be assigned a static-name. So that
+it does'nt get random names.
+</para>
+
+<para>HTML ancors pointing a sections within the document,
+sould have static-names. So that randomness can be avoided.
+</para>
+
+</section>

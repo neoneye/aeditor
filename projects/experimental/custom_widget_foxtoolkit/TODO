@@ -1,0 +1,60 @@
+TODO
+*	get mouse input
+	*	blocking on/off.
+
+*	smooth scrolling!
+
+*	some of the glyphs is 'higher' than cell_height.. why?
+	Is the value I get from font->getFontHeight(); screwed ?
+	If I don't fix it then it will cause rendering fuckups.
+
+*	reduce amount of repaint. When moving the cursor around
+	I invoke update(); which re-paints everything.
+	This of cause has to be optimized, so only the dirty
+	area get repainted.
+
+*	resize the same way as GVIM, in steps equal to the
+	font size so that we won't have any partial cells.
+
+*	render decorations (markers)
+
+*	animated folding!
+
+*	properties so you dynamically can change
+	configuration of the widget.  
+	font, colors, textures.
+
+*	flashing cursor.
+
+*	unicode font rendering
+	Damn!!  Fox doesn't yet support unicode!
+
+
+
+THOUGHTS
+*	FXText is dealing with resize in a completly 
+	different fashion. I cannot figure out what
+	is going on. Is FXText#resize approach better
+	than the current one ?    I don't know.
+
+CHANGES
+13-sep-2003
+*	focus in/out, behaved strange.
+	if I pressed arrow_up then the widget lost focus.
+	if I pressed arrow_down then we still got focus.
+	How could the widget keep its focus ?
+	Well very simple actually, in the onKeyPress I 
+	returned '0', which means that the keypress were
+	unhandled. By returning '1' I can tell Fox that
+	the keystroke has been consumed by me.
+*	get keyinput.
+*	movement of cursor.
+*	place the cursor when clicking.
+
+12-sep-2003
+*	find greatest background-style span and fillRect it.
+*	widget resize (SEL_CONFIGURE).
+*	render cursor.
+*	experiments with gaining/loosing focus.
+*	output which keys has been pressed.
+

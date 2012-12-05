@@ -1,0 +1,312 @@
+Things to remember:
+*	unittest as much as possible (test-first).
+*	make it work, make it right, make it fast.
+*	seperation of concerns.
+*	don't assume too much.
+
+
+BUGS:
+*	none.
+
+TODO:
+*	Humphrey Brown <humphrey@videotron.ca> reported that
+	the /tmp/aeditor.log file could grow to a huge size.
+	that something should be done to prevent this.
+
+*	make curses-fallback in case ncurses isn't present.
+
+*	If you record a macro only consisting of Redo events,
+	then the behavier is silly. Fix it.
+
+*	use my iterator package for representing the buffer.
+
+*	markers.
+	*   the 'markers2' cvs-branch has not been merged,
+	    the following items must be completed before I can
+	    procede with merging.
+	OK  conversion between bufobj.mark & lineobj.mark.
+	OK  conversion from lineobj.mark into cells.
+	OK  name of marker:  '1', '2' or '<1>' or '<A>' or 'AA' ?
+	OK  transfer markers between containers.
+	*   insert mark (requires a keybinding).
+	*   move cursor to a specific marker (requires a keybinding).
+	*   removal of mark (requires a keybinding).
+	*   syntax hiliting.
+	*   marklist is _maybe_ necessary when menu-of-bookmarks
+	    or list of search-results  or list of compiler-errors
+	    needs to point back at the line/buffer objects.
+
+*	I need better keyboard handling, because im sort of
+	run out of available keybindings. I need to be able
+	to detect if CTRL or META or SHIFT were pressed.
+	* translate esc-sequences into key-values.
+	  * how do I deal with the ESC key alone ?
+	  * termcap.
+	  * mouse handling ?
+	  * resize.
+	  XTerm is good a returning sequences when CTRL or
+	  SHIFT is pressed. Konsole is really bad, so don't use it.
+	* stack of keymaps: push, pop.
+	* control.rb is hardcoded to use Ncurses.KEY_xxx. This 
+	  hardcoding is nasty. Instead use AdapterPattern to 
+	  generalize the keymapping system. Eventualy combined
+	  with CommandPattern.
+	  Event Classes: Keystroke, Mouse, Resize.
+	  Resize seems ackward.
+
+*	configuration file placed in $HOME
+	should I use either YAML or REXML ?
+
+*	it seems that Edit#current is not measured at all ?
+	Is this true ? How do I solve it ?
+
+*	folds. use "#[" as fold-begin, and "#]" as fold-end.
+	* F7 and F8 should be combined, toggle behavier.
+	* fold-title: line-number is incorrect.
+	  it should be equal to "hidden+visible".
+	  Therefore Measure must keep track of hidden lines.
+	* view (x,y) position gets fucked up, happens when:
+	  * harmless attempts to collapse a fold.
+	  * expanding a fold in the bottom of the view so
+	    that the lines from the fold exceeds the bottom,
+	    then the screen is scrolled... this is bad.
+	    preserve the cursor-position-within-view instead.
+	  * collapsing the fold in the bottom of the view so
+	    that the lines to be folded exceeds the bottom,
+	    then the screen is scrolled... this is bad.
+	    preserve the cursor-position-within-view instead.
+	  * other cases.
+	* if you start edit the line containing the fold,
+	  example: inserting double quote => then our fold
+	  no longer exists!  This can be dangerous.
+	* in order to locate begin/end there is some language 
+	  specific code (hardcoded to Ruby at this moment).
+	  This doesn't belong to Buffer.. move it elsewhere.
+	  scan_foldtag_begin/end + fold_make_title.
+
+*	line-folding.
+	1 line-folds should fit to width (Render)
+	2 [temporary] insert a fake line-fold by F8
+
+*	Buffer#cmd_move_home breaks the scrolling position, because
+	its using Buffer#get_state..  restore scrolling would be nice.
+	Undo/Redo of blocking results in scroll-fuckup.
+	Therefore attempt to preserve scrolling position.
+
+*	changing the width, when softwrap is enabled, must be
+	analysed further (Allan Odgaard pointed this out for me). 
+	move_left/right operations on the undo stack no longer 
+	behaves the same way.
+
+*	unittesting:
+	* The LineEdit class is *un-testet*.. test me!
+
+*	word-wrap.
+
+*	if one accidentialy hits a key during undo, (s)he will 
+	loose all redo information. In order to make it more
+	user-friendly we want to allow for movement, so that
+	redo still works.  This is possible.
+
+*	unicode, internal representation = UCS-4.
+	* load, store UTF-8.
+	* measure bytes should convert from UCS-4 to UTF-8.
+
+*	remove tailing space.
+
+*	optimize spaces to tabs (requires intelligence).
+
+*	blocking: if half of a tab is selected then
+	padding should occur.
+
+*	changing tabsize at runtime. This has consequences
+	for undo/redo. Figure out exactly what it takes
+	to make this possible.
+
+*	if cursor < begining of line.. catch exception.
+	Maybe goto end of prev-line policy.
+
+*	editor for control-chars.
+
+*	if Buffer#x is greater than length of the line, then
+	truncate x. Only important when VSpace is disabled.
+	Maybe goto begining of next-line policy.
+
+*	commands: 
+	backspace-unindents
+	delete
+	ctrl+left = prev_word
+	ctrl+right = next_word
+	ctrl+up = move up one column.. only consider the x column.
+	ctrl+down = move down one column.. only consider the x column.
+	shift+up = swap_line_with_above
+	shift+down = swap_line_with_below
+	shift+left = unindent
+	shift+right = indent
+	??? = insert file at cursor
+	??? = write block to file
+	??? = delete line
+	??? = goto line number
+	??? = search (replace)
+
+Nice things to have:
+*	F1 = help menu. What keybindings is available.
+	How does one uses AEditor ?
+	Is there a config file (dotfile) ?
+
+*	LineObjects#visual_lines is useless. 
+	BufferObject#visual_lines should use a boolean instead.
+	These 2 cause much confusion.
+	I have no objects wich is capable of spanning multiple lines,
+	therefor this is *dangerous*.
+
+*	rearrange the CommandHarmless exception hierarchy, eventualy
+	group all derived exceptions within one module. At this moment
+	they are all scattered out all over the place.
+
+*	use hash arguments, so that non-intuitive arguments is
+	refered to by thier name. example:
+	   #set_memento(memento, true)   # 'true' is non-intuitive!
+	   #set_memento(memento, :preserve_y => true)  # intuitive
+	There is few operations where this kind of arguments could
+	be useful.
+	   Buffer#set_memento(memento, :preserve_y => true)
+	   Buffer#cmd_move_home(:toggle_mode => false)
+	   Buffer#scroll_up(:preserve_y => true)
+	   Buffer#initialize(:tabsize => 4, :autoindent => true)
+	   Edit#move_home(:toggle_mode => true)
+	See 'fileutils.rb' distributed with Ruby for more info
+	on how to implement hash-symbolic-arguments.
+
+*	rename things:
+	* Buffer#position_y and Buffer#position_visible_lines
+	  I always confuse them with eachother.. avoid this confusion?
+	* scan_right              -> each
+	* position_y              -> view.y
+	* position_x              -> view.x
+	* visible_lines           -> view.height
+	* position_visual_lines   -> visual.y
+	* total_visual_lines      -> visual.total
+	* position_physical_lines -> physical.y
+	* total_physical_lines    -> physical.total
+	* line_import_top         -> top.pop
+
+*	only render delta-changes (optimizations).
+	use hardware to scroll the screen.. there is an 
+	ANSI-escape sequence which can tell that the screen
+	should be scrolled.
+	ANSI-escape sequences further more supports insertion/removal
+	of a letter within a line.. it simply scrolls the remainging
+	part (the right part).
+
+*	lower memory consumption:
+	1 Commands::Backspace is taking a full snapshot of the
+	  state, because it doesn't know if there will be executed
+	  either 'cmd_backspace' or 'cmd_joinline'.
+	  I would be nice to only store the delta-changes.
+	* blocking, only capture @blocking state.
+	* Chunks of text: By grouping multiple letters into
+	  one chunk, we can get rid of pointers in our 
+	  double linked list and the number of allocations can
+	  be reduced dramaticly.
+
+*	The undo/redo should attempt to restore the original
+	horizontal scroll position of the View.
+	It feels very confusing to undo/redo because it lacks
+	supporting this.
+	The restoration of the scroll-position does not have
+	to be exact (In fact its impossible, Think of Resize).
+
+*	serilization of Macros + undo/redo data.
+	so that we can save our favorite macros.
+
+*	play macro within selection.
+	repeat until the cursor exits the selection.
+	if no movement within the macro, then it fails.
+
+*	When executing macros, the undo/redo system should 
+	probe the command's subcommands in order to determine
+	if a full-snapshot can be avoided. 
+	Example: A small macro which contains:
+	   #1  move_right
+	   #2  move_down
+	   #3  backspace
+	A full snapshot would be way overkill here.
+	The ideal is only store the delta-changes.
+	Reducing memory comsumption.
+
+*	show line-numbers.. this is especialy nice to have
+	when using folding.
+
+*	blocking: the EOL indicators should not be hilited.
+	maybe clreol the whole line (maybe different color)?
+
+*	virtual-lines... the same way as virtual-space.
+
+*	horizontal scrolling is very disturbing at the moment.
+	how can I make it more visual appealing ?
+	I guess the Buffer#ensure_visible_cursor_x must be
+	made much more intelligent.
+
+*	support multiple color-palettes.
+
+*	Render#data_left? should ignore space/tab, so that
+	'true' is only returned when there is *real* data 
+	outside the border.
+	rendering of tabs with glyphs different from space,
+	something like "___." is already possible.
+	But using non-space glyphs then the BufferRender 
+	cannot tell if it is dealing with leading space or not.
+	Add some logic so that I can tell if I am dealing with
+	leading space.
+
+*	render cursor at the current-position.
+	hilite the cell at the current-cursor-position.
+
+*	store extra information when the buffer gets saved
+	as a file: location of markers, folds, cursor.
+	restore location when the file is open'ed again.
+
+*	intelligent-indent,  Buffer#cmd_move_home and
+	Buffer#cmd_breakline would require modifications.
+	The indentation-level depends heavyly on the 
+	filetype + language-settings.
+
+*	raa-install --install aeditor
+	'ncurses-ruby' is NOT raa-installable, yet.
+	Therefore bundle Ncurses within the tarball.
+	I must figure out how to do 'pre-config.rb'
+
+
+Maybe nice to have? features/thoughts:
+*	option for how pagedown should deal with buffer-bottom: 
+	A: borland pascal behavier (insert virtual lines)
+	B: emacs behavier (no virtual lines, almost same logic as pageup)
+
+*	aeditor --selftest
+	should invoke 'test_all.rb'
+
+*	refactoring: merge LineObjects with BufferObjects.
+	NO.. they are 2 different class heirarchies!
+	BufferObjects is chunky.
+	LineObjects is atoms.
+	It is good as it is right now where conversion takes place.
+
+*	status-area at the top or bottom menuline?
+	nothing to undo/redo. 
+	[filename, lines, bytes] written to disc.
+	top/bottom of buffer. 
+
+*	If a Command is failing, then the exception should be
+	accumulated, so that you can see it in the status-line:
+	what went wrong, why it went wrong, perhaps backtrace too.
+
+
+Impossible to implement (but nice to have):
+*	Improve security, see:   http://ruby-talk.org/74379
+	The Edit class inherits from EditContainer and makes
+	heavy usage of EditContainer's @left+@current+@right
+	variables.  But this is highly dangerous.
+	Instead the child should inherit these variables as
+	READ-ONLY, in order to prevent accidents like the 
+	VSpace-in-left-buffer catastrofy.

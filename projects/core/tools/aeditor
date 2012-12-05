@@ -1,0 +1,3 @@
+#!/usr/bin/ruby
+require 'aeditor/ncurses/main'
+Application.launch

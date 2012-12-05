@@ -1,0 +1,72 @@
+WATCH OUT
+*  CTRL-ALT-BACKSPACE will log you out, don't try it!!!
+
+TODO LIST
+
+*	wide char support in Ncurses, how ?
+	Ncurses.getch() is there a wide version of it?
+	how about output functions ?
+	Is it UTF-8 or UCS-4 ?
+	KeyEvent#text should yield an unicode string
+	"xterm -u8" starts a terminal in UTF-8 mode,
+	getch will then recieve UTF-8 sequences.
+
+*	the danish letters %w(æ ø å Æ Ø Å) should be dealt with.
+
+*	perhaps make both a termcap for ascii and for unicode ?
+
+*	also make a termcap based on info from terminfo.
+
+*	translate resize event into ResizeEvent.new(x, y)
+
+*	deal with non-ascii, where value > 127
+
+*	hash key-code 2 key-name
+
+*	on my XTerm I entered a special escape mode, where
+	LEFT yielded "\e0D"
+	normaly I expect "\e[D"... why zero instead of bracket ?
+
+
+Reading the keyboard is difficult through a unix-terminal.
+Ncurses+Curses doesn't help you.
+
+
+What I need is:
+read keyboard sequences, like SHIFT+ARROW_UP and CTRL+ARROW_LEFT.
+
+
+How do I do it ?
+
+
+
+http://www.linuxvalley.it/encyclopedia/ldp/manpage/man4/console_ioctl.4.php
+http://www.ibiblio.org/gferg/ldp/Console-Programming-HOWTO/x87.html
+http://mars.wiwi.uni-halle.de/asm/articles/rawkb.html
+http://www.linuxgazette.com/issue76/marinov.html
+http://www.iar.unlp.edu.ar/~fede/revistas/lj/Magazines/LJ4/2798.html
+http://programmer.lib.sjtu.edu.cn/ioctl/FreeBSD-console-ioctl.txt
+
+
+It seems to be possible to parse the raw-codes directly
+from the keyboard. 
+
+
+
+virtual keycodes, how should I organize them ?
+
+I want to be able to capture a wide range of events:
+   CTRL-SHIFT-LEFT
+   SHIFT-TAB
+   ALT-I
+   CTRL-S
+   WIN_RESIZE
+   WIN_ICONIFY
+   WIN_LOST_FOCUS
+
+Also I want to capture press/release of arrow-keys,
+so that I can do diagonal scrolling.
+
+perhaps add support for #composite? which tell if the
+glyph can combine with the following key.
+example accent can combine with 'e' -> 'è'

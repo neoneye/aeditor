@@ -1,0 +1,74 @@
+<section>
+<title>Trobleshooting</title>
+<para>What if things doesn't work?  
+If none of these hints can help you, then you are welcome to
+mail me and I will look into your problem.
+</para>
+
+<section>
+<title>Failed to load external entity "xhtml_onechunk"</title>
+<screen>shell% make
+xsltproc \
+--output index.html \
+xhtml_onechunk \
+main.xml
+warning: failed to load external entity "xhtml_onechunk"
+cannot parse xhtml_onechunk
+make: *** [onechunk] Error 4
+shell%
+</screen>
+<para>We got an errorcode <errorcode>4</errorcode> from <application>xsltproc</application>.
+The man-page says <errorname>4: failed to parse the stylesheet</errorname>.
+</para>
+
+<itemizedlist>
+<listitem><para>Make sure that the <envar>XML_CATALOG_FILES</envar> environment
+variable is setup correct.
+<screen>shell% env | grep XML_CATALOG_FILES
+XML_CATALOG_FILES=catalog.xml
+shell%
+</screen>
+</para></listitem>
+<listitem><para>Make sure that the <filename>catalog.xml</filename> is valid xml.
+<screen>shell% make catalog
+xmllint --valid --noout catalog.xml
+shell%
+</screen>
+If no output, then its valid xml.
+</para></listitem>
+<listitem><para>In <filename>catalog.xml</filename>, Make sure that the
+the stylesheet path points correct into your homedir 
+(<filename class="directory">/home/myhomedir/docbook/xsl/</filename>).
+</para></listitem>
+</itemizedlist>
+
+<para>If it still doesn't work you are welcome mail me.
+</para>
+</section>
+
+<section>
+<title>Failed to load external entity "http://.../docbookx.dtd"</title>
+<screen>shell% make
+xsltproc \
+--output index.html \
+xhtml_onechunk \
+main.xml
+main.xml:11: warning: failed to load external entity "http://www.oasis-open.org/docbook/xml/4.2/docbookx.dtd"
+]>
+ ^
+shell%
+</screen>
+<para>No error code, apparently this went well.
+</para>
+<itemizedlist>
+<listitem><para>In <filename>catalog.xml</filename>, Make sure that the
+the DTD path points correct into your homedir 
+(<filename class="directory">/home/myhomedir/docbook/xml/</filename>).
+</para></listitem>
+</itemizedlist>
+
+<para>If it still doesn't work you are welcome mail me.
+</para>
+
+</section>
+</section>

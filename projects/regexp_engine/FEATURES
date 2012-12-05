@@ -1,0 +1,107 @@
+Overview
+========
+
+There is at the moment 3 parsers.. perl5, perl6, xml.
+
+Encodings supported: ASCII, UTF-8, UTF-16BE, UTF-16LE.
+
+
+Not yet supported stuff
+=======================
+
+Send me a mail in case there are something you want, or if 
+you are a developer yourself then send me some patches.
+
+* subcaptures inside negative-lookahead/behind.
+* grammars.
+* asian encodings.
+* inline-code.
+* named captures.
+* possesive quantifiers. 
+* recursive expression. 
+
+
+Perl5 syntax
+============
+
+  a|b|c         alternation 
+  [...] [^...]  character class.. and inverse charclass
+  [[:alpha:]]   posix character class
+  [[:^alpha:]]  inverse posix character class
+  .             dot matches anything except newline, same as [^\n]
+  \1 .. \9      backreference . . . . . . . . . . . . . . . . . . . . . . see [3]
+  *     *?      loop 0 or more times  greedy/lazy
+  +     +?      loop 1 or more times  greedy/lazy
+  {n,}  {n,}?   loop n or more times  greedy/lazy
+  ?     ??      loop 0..1 times       greedy/lazy
+  {n,m} {n,m}?  loop n..m times       greedy/lazy
+  {n}   {n}?    loop n times          greedy/lazy 
+  ( ... )       capturing group
+  (?: ... )     non-capturing group
+  (?> ... )     atomic grouping
+  (?= ... )     positive-lookahead 
+  (?! ... )     negative-lookahead  . . . . . . . . . . . . . . . . . . . see [2]
+  (?<= ... )    positive-lookbehind . . . . . . . . . . . . . . . . . . . see [1]
+  (?<! ... )    negative-lookbehind . . . . . . . . . . . . . . . . . . . see [1], [2]
+  (?# ... )     posix-comment
+  (?i)  (?-i)   ignorecase on/off
+  (?m)  (?-m)   multiline  on/off
+  (?x)  (?-x)   extended   on/off
+  ^     \A      begin of line, begin of string
+  $     \z \Z   end of line, end of string (excl newline)
+  \b    \B      word boundary, nonword boundary
+  \d    \D      [[:digit:]] and the inverse [^[:digit:]]
+  \s    \S      [[:space:]] and the inverse [^[:space:]]
+  \w    \W      [[:word:]]  and the inverse [^[:word:]]
+  \x20          hex . . . . . . . . . . . . . . . . . . . . . . . . . . . see [4] 
+  \040          octal . . . . . . . . . . . . . . . . . . . . . . . . . . see [3], [4]
+  \x{deadbeef}  widechar codepoint specified as hex
+  \n            newline
+  \a            bell
+  \             escape next char
+
+precedens between operators:
+  ()            pattern memory
+  + * ? {}      number of occurrences
+  ^ $ \b \B     pattern anchors
+  |             alternatives
+
+
+1. Variable-width-lookbehind are fairly supported by this engine.
+   For instance this (?<=(a.*)g) is a valid expression. 
+   Beware that the left-most-longest rule is inversed inside lookbehind,
+   and that Backreferences are not possible (yet).
+
+2. Subcaptures inside negative-lookahead/behind are empty
+   at the moment.
+
+3. If one tries to backreference a not-existing capture then it
+   will be interpreted as an octal symbol.
+
+4. When encoding is ASCII, you can specify hex/octal values in 
+   the range 0-255. However when encoding is UTF8 then only the 
+   range 0-127 are valid, in this case the range 128-255 is undefined.
+
+
+Perl6 syntax
+============
+
+See 'test/test_perl6parser.rb' for current status.
+
+Goto this url to see the perl6 regexp reference
+http://www.perl.com/pub/a/2002/06/04/apo5.html
+
+  a|b|c         alternation
+  .             dot matches anything except newline <-[\n]>
+  <- ... >      inverse
+  <[a-z]>       charclass a..z
+  <digit>       predefined charclass, same as <[0-9]>
+
+
+
+Xml syntax
+==========
+
+The Xml parser is far from usable.
+
+

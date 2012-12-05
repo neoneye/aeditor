@@ -1,0 +1,108 @@
+Regular Expressions Engine
+2004, by Simon Strandgaard <neoneye@adslhome.dk>
+http://raa.ruby-lang.org/list.rhtml?name=regexp
+
+
+
+About
+=====
+
+Here is an Regexp engine written entirely in Ruby.
+It allows you to search in text with advanced search patterns.
+It supports Perl5 syntax... plus some perl6 syntax (more to
+come in the future). Its fairly compatible with Ruby's native 
+regexp engine (GNU), and when running against the Rubicon 
+testsuite, it passes 97.948% out of 1560 total tests.
+
+The implementation is simple, yet without any optimizations.
+Therefore speed is slow.. At some point when optimizations
+are in place, I plan to do a re-implementation in C++.
+Because of the simplicity, the code should be easy to grasp
+and extend with your own custom code.
+
+
+Goals
+=====
+
+Be compatible with Ruby's GNU regexp engine (perl5 syntax).
+DONE, This is goal fullfilled.
+
+Support Perl6 regexp-syntax (even before perl6 gets finished). 
+This new syntax is less obfuscated than old perl5 syntax.
+Perhaps also make a converter between perl5 <-> perl6 syntax.
+Not fullfilled yet, but I am working on it.
+
+The AEditor project needs a flexible regexp-engine for doing 
+lexing, so that text can get syntax-colored.
+Future.
+
+The Ruby-in-Ruby project needs a regexp-engine.. this engine 
+will hopefully become suitable.
+Optional.
+
+Explain-regexp.. output a verbose overview of what each
+opcode in the regexp does.
+Optional.
+
+
+Status
+======
+
+The project has completed the 'make it work' phase, and has
+entered the 'make it right' phase, where I will focus on
+optimization, so that decent speed can be achieved.
+
+Running the engine against the Rubicon testsuite, yields
+pass=1528, fail=32,  pass/total=97.948%
+The failing tests are mostly obscurities in GNU.
+
+Besides that there are 673 tests, which both does whitebox
+and blackbox testing. However in order to run the tests
+its necessary to fetch Michael Granger's Test::Unit::Mock
+package. 
+
+
+License
+=======
+
+Ruby's license.
+
+
+Acknowledgements
+================
+
+Mark Sparshatt 
+* Got the inital idea of extending with perl6.
+* NewMatchData class, NewRegexp class. 
+
+Guy Decoux/Dave Thomas
+* stolen part of rubicon testsuite which exercises regex.
+
+
+CVS Development
+===============
+
+Follow this procedure in order to get things working:
+
+   1.   your current dir should be "aeditor/projects/regexp_engine/."
+
+   2.   create symlink 'regexp' pointing at 'source/'
+        prompt> ln -s source regexp
+        otherwise many require statements will fail.
+
+   3.   Depending on your shell..
+	tcsh-prompt>   setenv RUBYLIB `pwd`
+        bash-prompt>   export RUBYLIB=""`pwd`""
+
+   4.   prompt> cd test
+
+   5.   prompt> ruby test_blackbox_p5.rb 
+
+
+Contact
+=======
+
+In case you find a bug og have suggestion for improvements,
+then feel free to mail me. 
+
+Simon Strandgaard  <neoneye@gmail.com>

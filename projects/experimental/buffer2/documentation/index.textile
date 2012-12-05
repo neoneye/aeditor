@@ -1,0 +1,407 @@
+h1. A New Data Structure
+
+By "Simon Strandgaard":mailto:neoneye@gmail.com.
+
+h3. Abstract
+
+I cannot recall how many times I have reworked AEditors datastructure.
+I have a zillion specs inside my head, and I have reached the 
+point where im getting tired whenever im trying to draw a new
+setup on paper. Mostly because of all these specs must be
+considered at the same time, pulling in opposite directions.
+This design document is merely to be able to overview all these
+specs at the same time, and hopefully to __capture a better design__.
+
+h3. Whats Wrong With The Old Design?
+
+Some things sux and other things is missing.
+
+# _%(important)Bad caching%_. With the @AEditor 1.x@ branch I implemented 
+syntax coloring, it required many layers of caching.
+The current model for this is buggy, for instance in
+selection mode and one press pageup, then under some conditions
+I don't get cleared some cache entries correct. Leaving the
+buffer with wrong data. Maybe this is because of too simple
+design. I would like a more _automatic cache refreshing_.
+
+# _%(important)Optimized vertical scrolling%_. When I added support for this,
+I had to re-implement all buffer operations, so they could invoke
+the optimized code only when necessary and do as little as possible.
+It would be really nice if the caching system were so lazy that it
+could determine how to do _minimal repaint+blitting automaticly_.
+This way there is half as much code to maintain and test, so this
+would be a big win (less code == less bugs).
+
+# _%(important)Robustness%_ is bad. Somehow I from time to time get
+iterator underflow/overflow error, its difficult to tell exactly
+what the problem seems to be. I guess that I break the integrity
+in the view/model at some point. But its really difficult to 
+tell where exactly it happens. The shortest procedure I have made
+that could reproduce the problem were 3-6 operations.. but still
+not easy to tell what goes wrong. Recently I have been busy
+with my study and job, so I havn't got enough time to really dig
+into this issue. A more robust data structure which doesn't allow
+for invalid data would be nice, so that its _easier to hunt down 
+such problems_.
+
+# _%(important)Folding%_. I have implemented arbitrary folding in 
+the @AEditor 0.x@ branch with an akward design that 
+violates the _MVC_ pattern (so that multiple views are _impossible_). 
+I like its concept which is easy on the eyes. However my ideas for 
+this was formed long time before I knew Ruby. Today I also want 
+folding on Heredocs, Literals, Strings, Arrays, Hashes.. 
+Everything that spans over multiple lines. I want to be able
+to store the folding information along with the file. I want
+to have multiple view to the same document. Maybe I also want
+multiple persons to be able to edit the same document simulatanous.
+I like moderate folding, to much folding feels like bloat,
+though some people like lots of folding.
+
+# _%(important)Optimized horizontal scrolling%_. I have never had support
+for this feature, but it would be nice. It will require substantial
+changes to the code that decorates the line. Anyway this area
+will require major changes in order to support line numbering.
+I can probably recycle the lazy scheme I hope to get developed
+with the vertical scrolling. This has low priority.
+
+# _%(important)2 Pass lexing%_. Right now im doing full syntax coloring in one 
+pass. I suspect that more speed can be gained dividing this great
+task into a relative small first pass and a bigger second pass,
+so that the editor can become more responsive. Though I find it
+hard to see how I can break my current lexers into smaller tasks.
+For instance identifying escape sequences within strings can
+be delayed. I am wondering if there are other editors that also 
+has 2 pass lexing?   Sometimes its not desireable that the lexer
+immediately begins propagating the state further to the following
+lines, for instance when one opens a String.. then its confusing
+that the whole display changes color and changes color again when
+the String is closed again. The big confusing flash can be prevented
+by inserting a customizable delay. It may be necessary with 
+different delays depending on the element type: long delay for 
+Strings, and short delay for Comments.
+
+# _%(important)Multiple views%_. So far I have decided only consider setups
+with only one view in order to make things so simple that I could
+understand them myself. It is common that modern editors supports
+multiple views of the same buffer. This raises some issues about
+how to manage the undo/redo? Especially how to do intersection
+between multiple undo-lists. Recently there has been lots of
+talk about Collaborative Editing, which also is about intelligent
+merge of the undo-list. Should AEditor go this direction?
+It probably will require some experimentation with undo-lists.
+
+# _%(important)i18n%_. The old @AEditor 1.x@ branch were originally designed
+for unicode but at some point I forgot about encoding (again).
+I could probably modify the code so it can render unicode, but
+maybe it will take too many resources. This time I better do it
+right from the start. I would really like
+to store the file-data with the same encoding, so that
+all operations must be encoding-aware. However this makes
+everything extremly complicated, so I think its better for
+me to focus on just a single encoding. I know it should be
+some kind of unicode. UTF-8 is evil because of the overlong
+sequences. UTF-16 is more _robust_ and surrogates are
+simpler to deal with, than UTF-8. UTF-32 is waste of space.
+However Ruby's regexp can only deal with UTF-8 encoding,
+so I guess its going to be UTF-8.
+
+# _%(important)prevent explosion of objects%_. The number of active objects are
+huge, because I have multiple levels of caching. Some places I
+use Array of pairs, which really waste memory. But this problem
+is difficult to fix, because I then would loose the future-ability
+of supporting a mix of _wide-chars_ and _normal-chars_. Maybe I
+should do @Marshal.dump@ on those buffers which isn't active, so
+that only the current active buffers takes up resources?
+I must be careful that the switch to buffer operation, doesn't 
+become too annoying.
+
+# _%(important)live templates%_. Some editors are beginning to ship with this
+feature. You insert a template, and then fills out the empty
+fields. Very similar to inserting a wizard directly inside the
+buffer. By hitting _tab_ you can move to next field. By hitting
+_shift+tab_ you can move to previous field. This is quite complex
+because such template can span multiple lines. Very handy but
+also very complex to support.
+
+# _%(important)Soft wordwrap%_. A mode where long lines are being
+wrapped on to the next line. There should be options so that users
+can choose how the behavior of arrow_up/arrow_down should be.
+Should it skip the wrapped part of the line? Or should it place the
+cursor inside the wrapped part? May editors doesn't support the
+last mentioned mode, which is the mode I want. But I of cause wants
+to support the other mode too. This has impact on the model.
+While editing we must propagate text pieces around back and forth
+between lines. When a line gets overfilled, then the extra text
+should be propagated to the next line. When a line gets underfilled
+then text from the next line should be pulled up, until the line
+gets overfilled so that a normal propagate can occur. It add an
+extra twist to editing. KWrite has some goodies here.
+
+# _%(important)Rectangular Selections%_. I have always felt a
+stong desire for implementing this.
+
+# _%(important)Better GUI%_. So far I have aimed towards being
+as platform independent as possible using fxruby and curses.
+Being platform independent has costs: With fxruby its very 
+difficult to toggle between fullscreen mode and windowed mode.
+It cannot determine the available screenspace correct. It
+interacts bad with KDE and other WMs, and doesn't feel native.
+I have problems with keeping focus on the edit widget, so
+when the pulldown menu has been used then the widget looses
+focus. It has been necessary for me to use some nasty hacks,
+which only solves it partially. My inital choice of using
+modal mode has haunted me over and over. I would like to keep
+the Customization window open while the edit window is being
+used. Its not easy to change the application to non-modal mode.
+I like that its platform independet, but I cannot accept these
+problems any longer. Blitting inside the same bitmap is not possible. 
+FOX somehow doesn't seem to be able to use the fonts installed on 
+the system. I would like to install some nice monospaced fonts, but 
+fox cannot use them. I would like antialiased font-rendering too. 
+Curses has problem with the ESCape key. I still want to use
+the good old Amiga multicolor fonts, which I think can add more
+options to syntax coloring, but if used carefully hopefully can
+reduce the color-hell you see, and instead introduce dropshadows
+and bumpmapping (This stuff probably requires OpenGL). 
+What are my options?
+
+# _%(important)Nested Lexers%_. JavaScript can be used within
+HTML. Ruby has support for heredocs, so that Ruby code can
+contain HTML heredocs. In HTML one can use server-side includes,
+where certain tags gets replaced on the server, the language
+used within these tags can be anything. I see a need for having
+nested lexers. This may add an extra lexer-pass, so I in total
+will have 3 passes! What should I do in case there is a 
+recursion, that a document embeds a document which embeds 
+another document.. etc. Should I put a limit = 3.
+How should I do this?
+
+# _%(important)More Speed%_. I need all the speed I can get.
+In the old versions of AEditor I had each line represented
+by a String instance, so with 500 lines of code.. then I
+would have 500 Strings. I were prepared for the overhead
+of storing these many strings, but I wasn't prepared for the
+extra difficulties when it comes to lexing. Its both easier and
+faster to tokenize when its a single string, rather than 500
+strings, where state must be propagated. I have done some 
+benchmarking and realized that slowdown is acceptable for
+insert/remove operations on long strings (64 kbytes).
+On a 500MHz box insert/remove takes 0.000034 seconds, which
+should be enough. Another thing I can do is to preallocate
+the arrays, so instead of appending to an array (which requires
+realloc), I can do replacement of elements, this should give
+some more speed. Another benefit from storing everything in
+one big string is that search and replace becomes much simpler
+and thus faster.
+
+# _%(important)Simplify Things%_. I trend to put too many
+restrictions on myself. For instance I would like to place
+bookmarks arbitary, so the bookmarks stays between two
+letters, even though I insert and remove stuff on that line.
+I also would like to have arbitary folding as in AEditor 0.x,
+but this adds lots of restrictions. It is time for me to
+pick something more safe and robust, which doesn't require
+that much effort to implement.
+
+
+
+As you can imagine above issues are difficult to fit into the
+same design.
+
+h3. Open Questions
+
+Im interested in finding a solution to these issues, but im unsure
+how to best approach it. Should I write lots of text where I do
+analysis? Should I make proof of concept code? How many iterations
+can I expect it will take? How should I break it down so that I
+am sure that I won't forget things? Maybe I have forgotten some
+important issues. Please remind me.
+
+h3. New Features
+
+There are some features that I never had any experience with, these
+may suprise me, see 6, 7 and 10.
+
+h3. Automatic Structure
+
+In the list of problems I mention some issues regarding caching and
+automatic blitting, see 1, 2, 5. These are very related to eachother,
+and can probably be solved together. With multiple views it necessary
+that the model notifies all views about changes, so 7 also has 
+aspects in this area.
+
+h3. Advanced Editing
+
+Both 4, 8 and 10, requires custom editing strategies. BTW. I could
+as well add support for variable shiftwidth/tabstop, because the
+edit caretaker probably will require substantial modification.
+
+Automatic propagation could become necessary in order to deal 
+with 11.
+
+
+h2. General Questions
+
+# _%(important)What is the creteria for this to become a success?%_
+When I can use the editor for al kind of things and never thinks
+of using other editors, then I will begin consider this project as 
+an success. But what is my needs?
+It must be robust, reliable and never crash nor destroy data.
+It must have a conservative memory usage, its so painful when the
+machine begins swapping.
+It must be ligthing fast on a wide range of machines.
+It must be able to syntax color the most difficult code.
+It must be extendable via Ruby.
+It must have some IDE stuff, run in shell, breakpoints, debuggin
+and project handling.
+The AEditor 1.x branch fails in all these areas: it crashes
+sometimes when joining lines (its a good idea to CTRL-S before
+joining lines). A few times I have seen the lexer go nuts. 
+Besides when it has crashed, it has never destroyed data so this
+is good. Memory usage is about 25mbytes for a single document,
+which is too much, having many documents open with firefox open can 
+result in swapping. Neither version 0.x nor 1.x of AEditor 
+has been ligthning fast. AEditor 1.x has a good Ruby-lexer which
+can deal with heredocs and literals fairly good. Still it cannot
+lex Ruby inlined in HTML, nor HTML in a heredoc. AEditor is extendable
+via Ruby, but has a too narrow API, which makes it impossible to
+do anything usable. AEditor has always lacked IDE stuff.
+AEditor 0.x was TUI, 1.x was GUI. AEditor has never been both
+TUI + GUI at the same time, which could be nice.
+AEditor 0.x and 1.x has failed big time, lets hope AEditor 2.x
+can lift these demands.
+
+# _%(important)What GUI toolkit should I use?%_
+Scintilla render the editbuffer in a canvas, then the 
+interfacing code is responsible for integrating this 
+canvas with the toolkit. Scintilla integrates nice both with
+fox, gtk+ and windows. Scintilla doesn't seem to integrate
+nice with KDE. This time I think I will use C++ to do the
+syntax-coloring + rendering. Maybe I should look on how to make a
+KDE widget, and how to make it available to Ruby.
+
+
+h2. Rethinking The Caching Scheme
+
+I want things to happen automatic, in a way so I don't have to
+think about what im doing, so I don't have to write bunches
+of flawed code to clear _some_ of the right entries in the cache.
+What im doing now requires lots of effort to figure out what
+entries to clear, and requires lots of typing too. There must
+be a more comfordable/robust way to do this, where everything
+occurs automatic. The places where I make changes to the model,
+must somehow be kept track of. Same thing when I scroll
+sideways then I must set some dirtyflags, that these lines
+must be repainted, but no need for applying the lexer again.
+
+p=. !caching1.png!
+
+Above you see a diagram of the current implementation (it has
+certain simlarities with a 5 stage pipelined CPU). The white
+boxes is where the heavy computations take places, these are the
+bottlenecks in the system. Lexing is probably the most expensive
+operation. Rendering/decoration is less expensive.
+
+
+Here is a some random questions:
+
+# _%(important)Why is caching necessary?%_
+If we all had superfast machines then caching wouldn't be needed.
+In AEditor some operations consumes lots of resources:
+applying the lexer, repainting a line. Refresh speed is depending 
+on how the number of visible lines there needs to be recomputed.
+Slowdown is in paticular noticable if one presses page_up/page_down,
+because it invalidates everything in all caches!
+Slowdown is also noticable if one pastes 40 lines of text.
+Its impolite to consume lots of resources when you really could
+have done something to reduce the cpu-load.
+
+# _%(important)Any drawbacks of caching?%_
+Lots of memory consumption. If we cache lots of objects then
+there will also be a greater number of objects for Ruby's 
+Garbage Collector to visit, causing slower GC.
+Maybe I should do marshalling when storing cachelines?
+Too much caching requires too much memory, we are not interested
+in this either.
+
+# _%(important)How many levels of caching do I need?%_
+We should at least cache the output of the worst bottlenecks.
+Maybe more caching is necessary? 
+What really worries me is that lexing is so painfully slow,
+maybe I should split this step into 2 smaller operations or
+make it a 2phase lexer, where I first apply the bad lexer and
+later when I have more time then I can apply the good lexer.
+What I should do with the lexer keeps confusing me.
+At least the worst bottlenecks are
+## apply lexer
+## render
+## decorate
+
+# _%(important)Optimized blitting and cache?%_ When inserting
+a line, then we can just blit the bottom of the lines, so
+they appear one line further near the bottom (so there is room
+for the new line). This way there we can prevent render the
+bottom lines, even though we have inserted a line or removed
+a line. In order to accomplish this we must manipulate our
+cache data+dirtyflags in an smart way, where we insert/removes
+new cache lines, while keeping track of which blits we must
+execute. At some point we get a #refresh message, and then
+we must invoke the necessary blits. This has some impact on the
+design.
+
+# _%(important)What operations sets which dirtyflags?%_
+
+# _%(important)What about the bitmap cache?%_
+The bitmap layer should have knowledge about what blits it should
+invoke, what rectangles that needs repaint. Maybe its necessary
+to optimize the blits, so that in case lots of many pending blits
+then it will only do the absolute minimal blits.
+
+# _%(important)What about the glyph cache?%_
+We need 3 array of arrays: glyphs, fg-colors, bg-colors.
+Where Glyph is a one letter text string.
+Where fg-color and bg-color is the foreground color (rgb).
+Maybe an alpha value are needed?
+Maybe a texture could be applied?
+It is very inefficient to store a color triplet as an
+Array itself. Its better to use 3 separate arrays.
+Maybe its necessary to keep track of font-type: bold, regular, 
+itallic, layout. Same with font-family.
+It would be nice to know more about performance, depending
+on how one chooses to represent the rgb color: 
+array of triplet arrays, 3 arrays, one array of structs.
+Array of Arrays also consumes lots of memory, if somehow I
+could find a both fast + memory efficient solution.
+The 3 Array approach is fastest. But its more difficult
+to measure memory consumption (GNU time command outputs zeroes).
+Try this "benchmark":http://rubyforge.org/cgi-bin/viewcvs/cgi/viewcvs.cgi/projects/experimental/benchmarks/color_triplets/main.rb?cvsroot=aeditor.
+
+# _%(important)What about the line cache?%_
+Lets make it an array of text-fragments, paired with state-info.
+There is no info about how it visually should appear at this point.
+
+# _%(important)How should the automatic behavior be?%_
+# _%(important)How does an operation trigger this automatic behavior?%_
+
+# _%(important)Encapsulate all 3 caches as one component?%_
+Operations such as Insert line and Remove line, tweaks all the
+caches. In the current version, the 3 caches are owned by the view,
+so the view is really cluttered up. I have just realized that
+this would simplify things.
+
+
+h2. About Syntax Coloring
+
+Lexers should be bound to the View, and never to the model.
+This allows for having multiple views with different syntax coloring.
+
+
+h2. Keybindings
+
+The old system for setting up keybindings could be better.
+It would be nice to be able to add new bindings via the dotfile.
+
+
+
+
+

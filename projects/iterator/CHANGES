@@ -1,0 +1,113 @@
+02-june-2004 Neoneye
+*	version 0.8 released.
+
+23-may-2004 Neoneye
+*	moved DecodeUTF16 and File classes into 'iterator.rb'.
+
+22-may-2004 Neoneye
+*	UTF16 decoder can now both go forward and backward, and
+	can do both big and little endian.
+
+21-may-2004 Neoneye
+*	Iterator::File.clone, Nobu Nokada wrote a patch to 'io.c' 
+	so that File.dup now is working correct on FreeBSD. The 
+	position-garbage problem seems only to occur on FreeBSD, 
+	other platforms Linux, Windows seems to work ok.
+
+20-may-2004 Neoneye
+*	wrote an experimental Iterator::File.. must find a more
+	clean way to do #clone of it.
+*	preparations for UTF16 decoder.
+
+18-may-2004 Neoneye
+*	transfered the UTF8 decoder I recently have been working on
+	from my regexp project to this iterator project. Wrote some
+	rdoc documentation on how to use it.
+
+06-may-2004 Neoneye
+*	versioin 0.7 released.
+
+05-may-2004 Neoneye
+*	Reverse wasn't able to #clone itself correct, this is fixed now.
+*	Got rid of #position_prev, which was offbyone in conjunction
+	with Reverse. It should be even more robust now.
+*	Fixed bug in ProxyLast#reverse where a bordercase wasn't 
+	being considered. This is now fixed.
+*	bound-check added to Collection#current.
+*	ProxyLast#reverse now toggles the reversal in case one
+	tries to reverse it more than one time.
+
+03-may-2004 Neoneye
+*	preparing to make ProxyLast reversable.. more tweaking needed.
+
+27-april-2004 Neoneye
+*	Iterator::Base now includes Comparable module, so
+	that we can sort, compare.. do nice things.
+
+14-april-2004 Neoneye
+*	to_a not necessary in 'sample/multiway3.rb' because it
+	uses continuations.
+*	Added 'post-install.rb' which outputs a notice about
+	that users are encouraged to send feedback.
+
+07-april-2004 Neoneye
+*	versioin 0.6 released.
+*	minimal rdoc'ification of 'iterator.rb'.
+	http://aeditor.rubyforge.org/iterator/
+
+29-march-2004 Neoneye
+*	ProxyLast failed to compare against other instances.
+*	Had forgotten to do 'self.class.new' in ProxyLast#clone,
+	so that derived classes failed being cloned correct.
+
+20-march-2004 Neoneye
+*	version 0.5 released as: gem, tgz, zip.
+*	early experiments with packaging this as a rubygem.
+*	reworked the file-release system, so that I can make
+	multiple distributions. A rubygem package doesn't 
+	require 'install.rb' nor 'MANIFEST'. 
+	However a tarball does require it.
+
+23-febuary-2004 Neoneye
+*	version 0.4 released.
+*	added ProxyLast class; it remembers the last visited value.
+*	Iterator::VERSION constant added.
+
+02-december-2003 Neoneye
+*	version 0.3 released.
+
+01-december-2003 Neoneye
+*	Range class now supports has_next?/has_prev?
+	it didn't #close its iterators correct.. fixed now.
+*	Now all iterator classes supports #has_next?
+	and there are no longer any traces of #is_done? left.
+*	I consider it as good practize to let #first/#last
+	return 'self'.
+*	all samples has been adopted to use #has_next?
+*	Added 'sample/concat1.rb' which demonstrates Iterator::Concat.
+*	wrote inline-RDoc-documentation fore: Base, Algorithm, Array.
+
+30-november-2003 Neoneye
+*	#+ and #- are dangerous, in some cases when doing 
+	selfassignment x+=3, the cloned instance will get 
+	lost. Therefore I have replaced them with #next(n) and #prev(n).
+
+24-november-2003 Neoneye
+*	version 0.2 released.
+*	Added 'sample/implicit2.rb' which demonstrates #copy_n.
+*	Added 'sample/filler1.rb' which demonstrates #fill.
+*	Added 'sample/transformer1.rb' which demonstrates #transform.
+
+23-november-2003 Neoneye
+*	Added Collection#==(other).
+
+21-november-2003 Neoneye
+*	Added #+ and #- to Iterator::Base.
+*	Added #copy, #copy_n and #copy_backward to Object/Array.
+*	Added #create_iterator_end to Array. I think last element
+	should be excluded from the range spanned by i1..i2.
+*	Iterator::Continuation#clone is now working.
+*	#transform, #fill are now added.
+
+20-november-2003 Neoneye
+*	version 0.1 released.

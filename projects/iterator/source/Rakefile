@@ -1,0 +1,17 @@
+task :default => :test
+task :test do
+	require 'fileutils'
+	FileUtils.cd(File.join("..", "test")) do
+		sh "ruby test_all.rb"
+	end
+end
+file "iterator" do
+	sh 'rdoc --op iterator --title "Iterator Documentation"'
+end
+task :cleandoc do
+	FileUtils.rm_rf("iterator")
+end
+task :doc => [:cleandoc, "iterator"]
+task :upload => "iterator" do
+	sh "scp -r iterator neoneye@rubyforge.org:/var/www/gforge-projects/aeditor/."
+end

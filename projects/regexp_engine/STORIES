@@ -1,0 +1,90 @@
+Q1: how to split with '-' and let '--' become '-' ?
+
+'a-b--c---d'.scan(/((?:--|[^-])*) (?:-|$)/x
+	).to_a.flatten.map{|t| t.gsub(/--/, '-') }
+#=> ["a", "b-c-", "d", ""]
+
+
+Q2: how to split on normal dash.. but ignore escaped dash ?
+
+"a\\-b\\\\-c\\\\\\-d\\\\\\\\e".scan(/(?:\\[^.]|[^-\\])*/) 
+#=> ["a\\-b\\\\", "", "c\\\\\\-d\\\\\\\\e", ""]
+
+
+Q3: how to reject strings that matches 'perl' and
+accept all other strings?
+
+/\A(?!perl\z).*/m
+
+
+Q4: how to match strings that has all these words 
+at least once, in any order ?
+
+'a b c'.match(/(?=.*a)(?=.*b)(?=.*c)/)
+
+
+Q5: how to match the danish special letters: æøåÆØÅ ?
+
+'1æ2ø3å4Æ5Ø6Å7'.scan /[\xe6\xf8\xe5\xc6\xd8\xc5]/
+=> ["\346", "\370", "\345", "\306", "\330", "\305"]
+
+
+Q6: What is the best way of attacking field split 
+on ';' when the string looks like: s = 'a;b;c\;;d;'
+
+irb(main):001:0> "aa;bbb\\;;abc;;d\\\\;e;f".scan(/(?:\A|;)((?:\\[^.]|[^;])*)/) { p $1 }
+"aa"
+"bbb\\;"
+"abc"
+""
+"d\\\\"
+"e"
+"f"
+=> "aa;bbb\\;;abc;;d\\\\;e;f"
+
+
+Q7: How do I match the range 16..64 ?
+
+re = /\A(?:1[6-9]|[2-5][0-9]|6[0-4])\z/
+
+re =~ '15'  #=> nil
+re =~ '16'  #=> 0
+re =~ '65'  #=> nil
+re =~ '64'  #=> 0
+
+
+Q8: How do I subtract "aaabbbbccc" - "aabbc" => "abbcc" ?
+
+def intersect(a, b)
+  res=[]
+  b.scan(/((.)\2*)/) {|m| res<<m[0]}
+  str = a.clone
+  res.each{|r| str.sub!(r,'') }
+  str
+end
+a = 'aaabbbbccc'
+b = 'aabbc'
+c = intersect(a, b)
+puts "#{a.inspect} - #{b.inspect} => #{c.inspect}"
+
+
+
+Q9: How do I capitalize words which doesn't begin with "." ?
+
+"im any .string".gsub(/\A\w|(?!\.)\W\w/) {|s| s.upcase}
+#=> "Im Any .string"
+
+
+
+Q10: Anything more idiomatic than p, rest = pattern[0], pattern[1..-1]? 
+(where pattern is a String)
+
+p, rest = 'abc'.scan(/\A.|.+/)
+
+p, rest = 'abc'.unpack('aa*')
+
+
+
+Q11: How do I extract the text after 'foo' until lineend?
+
+"sdfsfd foo abc\nlsdjf\nfood".scan(/foo(.*)/).flatten  #->  [" abc", "d"]

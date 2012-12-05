@@ -1,0 +1,11 @@
+task :default => :upload_html
+
+UPLOAD_DEST = "neoneye@rubyforge.org:/var/www/gforge-projects/aeditor/neoneye/"
+
+task :upload_html do
+        sh "scp *.html #{UPLOAD_DEST}"
+end
+
+task :upload do
+        sh "scp * #{UPLOAD_DEST}"
+end

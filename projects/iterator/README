@@ -1,0 +1,84 @@
+Iterator classes, a subproject of AEditor
+2004, Copyright by Simon Strandgaard, neoneye@adslhome.dk
+http://aeditor.rubyforge.org/
+
+
+About
+=====
+
+If Ryby's native iterators (yield+each) ain't flexible enough,
+you may want to try using this collection of bidirectional 
+iterator classes.  Building custom iterator classes are simple. 
+This is a simple implementation of GoF iterator-pattern.
+
+
+
+Status
+======
+
+The overall design is stable. I don't expect any big changes.
+
+   Collection,   iterates over an Array or similar containers.
+   Reverse,      decorator which reverses the iterator.
+   Range,        iterate in the range between two iterators.
+   Concat,       concat multiple iterators into one.
+   Continuation, turn #each_word/#each_byte into an iterator.
+   ProxyLast,    remembers the last visited value.
+   DecodeUTF8,   convert UTF8 encoded string to unicode.
+   DecodeUTF16,  convert UTF16BE/LE encoded string to unicode.
+
+Plus some StandardTemplateLibrary inspired methods that operate
+on iterators.
+
+   #copy
+   #copy_n
+   #copy_backward
+   #fill
+   #fill_n
+   #transform
+   #transform2
+
+
+License
+=======
+
+Ruby's license.
+
+
+
+Example
+=======
+
+We can virtually concatene two arrays, so that they appear 
+as they were a single array.
+
+	def test_concat_sort
+		i1 = [5, 3, 1].create_iterator
+		i2 = [2, 4, 6].create_iterator
+		iterator = Iterator::Concat.new(i1, i2)
+		assert_equal((1..6).to_a, iterator.sort)
+	end
+
+
+Feedback, Please 
+================
+
+
+  Support
+  -------
+  If you have any trouble, then feel free to ask for help.
+  http://rubyforge.org/tracker/?atid=150&group_id=18&func=browse
+
+
+  Bugs   
+  ----
+  If things isn't working correct, then please let me know.
+  http://rubyforge.org/tracker/?atid=149&group_id=18&func=browse
+
+
+  Feature Requests
+  ----------------
+  Suggestions for improvements is welcome.
+  http://rubyforge.org/tracker/?atid=152&group_id=18&func=browse
+
+

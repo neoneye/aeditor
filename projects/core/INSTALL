@@ -1,0 +1,45 @@
+Prerequisites
+=================
+
+  1.   Ruby v1.8.0 or greater
+       http://www.ruby-lang.org/en/
+       if you already have Ruby installed, then you can
+       validate its version number by issuing:
+       prompt> ruby -v
+       ruby 1.8.0 (2003-08-04) [i386-freebsd5.1]
+       prompt> 
+
+  2.   Ncurses-ruby v0.7.1 or greater
+       http://raa.ruby-lang.org/list.rhtml?name=ncurses-ruby
+       Unfortunatly there is no way to probe for its version 
+       number, if you already have Ncurses-ruby installed. 
+       The only way you can get its version number is by
+       looking in the VERSION file in its tar.gz file!
+
+
+Installation
+=================
+
+Follow these 3 steps in order to install.
+last step may require 'root' permissions.
+
+    ruby install.rb config
+    ruby install.rb setup
+    ruby install.rb install
+
+
+In order to launch, just type 'aeditor' in a prompt.
+If this doesn't work then do 'rehash' and try again.
+If it still doesn't may want to check that Ruby is in 
+your PATH.
+
+
+
+Need help
+=================
+
+If you experience problems with installation, then please 
+submit a support-request (requires rubyforge account). 
+http://rubyforge.org/tracker/?atid=150&group_id=18&func=browse
+
+

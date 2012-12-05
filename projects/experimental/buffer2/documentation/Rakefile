@@ -1,0 +1,55 @@
+task :default => ['index.html']
+
+rule '.html' => ['.md'] do |t|
+	sh "bluecloth #{t.source} > #{t.name}"
+end
+
+rule '.html' => ['.textile'] do |t|
+	require 'redcloth'
+	rc = RedCloth.new(IO.read(t.source))
+	rc.fold_lines = true
+	body = "<body>"+rc.to_html+"</body>"
+	title = "<title>A New Data Structure</title>"
+	css = <<CSS
+<style type="text/css">
+body {
+  font-family: monospace;
+  font-size: 16pt;
+  font-weight: bold;
+
+  margin-left: 2em;
+  margin-right: 4em;
+  background-color: rgb(65,48,166);
+  color: rgb(121,113,223);
+}
+span.important {
+  background-color: rgb(255,223,113);
+  color: rgb(0,0,0);
+}
+a {
+  color: rgb(131,123,233);
+}
+p, li {
+  text-align: justify;
+}
+li {
+  padding-bottom: 10px;
+}
+img {
+  background-color: rgb(121,113,223);
+  padding-left: 4px;
+  padding-right: 4px;
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+</style>
+CSS
+	head = "<head>" + title + css + "</head>"
+	str = "<html>" + head + body + "</html>"
+	File.open(t.name, 'w+') {|f| f.write str }
+	p 'redcloth is done'
+end
+
+task :upload do
+	sh "scp -r *.html *.png neoneye@rubyforge.org:/var/www/gforge-projects/aeditor/buffer2/."
+end

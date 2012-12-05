@@ -1,0 +1,51 @@
+body {
+	margin-left: 2em;
+	margin-right: 2em;
+	font-family: Lucidatypewriter;
+	font-size: 14pt;
+	text-align: justify;
+	color: black;
+	background-color: #ccc;
+}
+H2.title {
+	font-family: Lucidatypewriter;
+	font-weight: bold;
+	font-size: 24pt;
+}
+H3.title {
+	font-family: Lucidatypewriter;
+	font-weight: bold;
+	font-size: 18pt;
+}
+div.warning H3.title {
+	text-align: center;
+}
+div.warning {
+	border: dashed;
+	border-width: 4px; 
+	margin: 10px 0px 0px 0px;
+}
+div.important H3.title {
+	text-align: center;
+}
+div.important {
+	border: dashed;
+	border-width: 4px; 
+	margin: 10px 0px 0px 0px;
+}
+div.note H3.title {
+	text-align: center;
+}
+div.note {
+	border: dashed;
+	border-width: 4px; 
+	margin: 10px 0px 0px 0px;
+}
+pre.programlisting {
+	border: solid;
+	border-width: thin; 
+	border-style: double; 
+	border-width: 12px;
+	margin-left: 1em;
+	margin-right: 1em;
+}

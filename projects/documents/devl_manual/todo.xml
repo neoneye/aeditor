@@ -1,0 +1,54 @@
+<section id="todo">
+<title>TODO</title>
+<para>There are many things to be done in this document.
+</para>
+
+<section>
+<title>Document Setup</title>
+<para>SVG. Try imagick.
+</para>
+
+<para>Improve CSS stylesheet.
+</para>
+
+<para>HTML-Banners at top/bottom, perhaps a picture
+of the AEditor project logo?
+</para>
+
+<para>output MAN/INFO files.
+</para>
+
+<para>output should be stored in a seperate dir.
+</para>
+
+<para>HTML chunk's should be assigned a static-name. So that
+it doesn't get random names.
+</para>
+
+<para>HTML anchors pointing to sections within the document
+should have static-names. So that randomness can be avoided.
+</para>
+<!--
+How to use 'catalog.xml' ?
+http://www.sagehill.net/docbookxsl/Catalogs.html
+http://xmlsoft.org/catalog.html
+http://www.oasis-open.org/committees/entity/spec-2001-08-06.html
+-->
+</section>
+
+<!--
+user-friendly 
+    synopsis
+    focus on pair programming
+        animation
+        preserve cursor position 
+    robustness (unittesting)
+-->
+
+<!--
+epcEdit has an interesting idea of rendering of XML tags.
+I think I will use same idea for rendering.
+http://www.epcedit.com/
+-->
+
+</section>

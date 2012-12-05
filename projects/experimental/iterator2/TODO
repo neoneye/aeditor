@@ -1,0 +1,8 @@
+* close iterator after usage.
+
+* robust-iterator, must detach iterators.
+  It is thus important for me to figure out a
+  detachment mechanism.. which is generic.
+
+* component-iterator, which is able to traverse
+  tree-data-structure.

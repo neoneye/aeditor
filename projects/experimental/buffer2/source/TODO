@@ -1,0 +1,199 @@
+integrate with ruby's debug.rb.
+
+
+dotfile.
+
+
+choose a lexer depending on file suffix.
+
+
+the imported lexer must be adapted to use unicode.
+right now it only deals with ascii. Lets ensure it outputs the
+same number of pens as the number of glyps it got as input.
+
+
+user-interface for search dialog (ala editpad).
+
+
+user-interface for replace dialog (ala editpad).
+
+
+[bug] sync selection mode between view and main. Some operations 
+causes main's selection mode to get out of sync with View. This 
+behavior is weird.
+
+
+render with colors.
+* delayed rendering looks ugly, please render it immediately.
+* lex ahead.. so that scroll up and down goes faster.
+
+
+optimize:
+* when scrolling to the bottom of the buffer, then rendering
+  becomes slower than in the top. I guess primarily it happens
+  because of View#visual that must built its array every time.
+  maybe introduce some caching here.
+
+
+misc:
+* all operations must write themselves to the logfile.
+
+
+user-interface:
+* file requester.
+* pulldown menu.
+* F1 should provide help.
+* mouse support.
+* scrolling to the  bottom of core.rb', I can see that the line-number
+  has been rendered wrong (maybe xterm/ncurses issue?).
+
+
+more edit-operations:
+* smart end (toggles between lineend and endspace).
+* search, replace.
+* match parenthesis.
+* rectangular selections.
+* swap lines.
+* indent/unindent.
+* undo/redo
+* macroes
+
+
+refactoring:
+* prefix all edit operations with edit_.
+* prefix all move operations with move_.
+* the lexer internally builds pairs of text and pen, this is 
+  inefficient, instead it should use an array of integers.
+
+
+encoding:
+A: detect encoding.
+B: write back with same encoding.
+
+
+commandline interface:
+
+
+scripting facilities:
+
+
+decorations:
+* red color text exceeding the 80th column.
+* red color for spaces before indentation point.
+* red color spaces/tabs after line end.
+
+
+paste should interact with X11's clipboard
+
+
+Obtaining View#visible for every operation takes time.
+Its probably better to have a Line#is_visible flag,
+so every time a bunch of lines is collapsed/expanded,
+or the structure is manipulated then the #is_visible 
+flags should be updated.
+
+
+the View operations should raise their own errors.
+right now the Model raises the errors which should
+be translated by View so the errors makes more sense.
+
+
+folding:
+A: Something weird happens if you do a backspace when you have
+the cursor placed right below a fold. I better investigate this.
+B: Folds should be attached to the beginning of the line, rather
+than to the end of the line.
+
+
+bookmarks:
+B: at this moment the bookmark is attached to the end
+of the line. It feels wrong to break a line and see that
+the bookmark follows to the next line. The bookmark should 
+instead be fixed to the beginning of the line.
+C: rendering of bookmarks fucksup when doing sideways scrolling
+when the line contains fullwidth glyphs. I suspect this is
+an issue in XTerm, that fucksup depending on if the cursor
+is placed before or after the rendered line.
+D: what to do if the bookmark is stored inside a fold.
+Should I expand the fold, so we can move to the bookmark?
+Or should I skip the bookmark?
+
+
+testing:
+A:  toggle_bookmark
+B:  goto_next_bookmark
+C:  goto_prev_bookmark
+D:  expand
+E:  collapse
+F:  render_row with options argument
+G:  move_to_next/prev_visible_line
+
+
+horizontal scrolling/movement, in case there
+are special strategies for certain letters then it 
+must deal with this as well. For instance Ctrl-A could
+be rendered as <C-A>. In case of a fold then deal with
+it too. Only the Canvas knows how the text renders,
+the View must probe the canvas about this info.
+What should happen?  The View must have an array of
+visible lines, where each line remembers the rendered
+glyph-width. Further more this should be integrated with
+the editing strategies.
+
+
+Refine the editing strategies for AEditor1 and 0.
+The following strateties should be written:
+* cursor through tabs
+* cursor skip tabs
+* glyph-missing
+* virtual space
+* fold
+* bookmark
+* halfwidth glyph
+* fullwidth glyph
+
+
+dirty flag for if canvas.size and view.size is out of sync.
+
+
+
+Sometimes we are not interested in a full
+replacement of the Line. For instance if you insert
+a single letter.. then we still want our bookmark
+to stay. same problem with folding.
+
+
+If I start the editor with the default document, by typing
+ruby main_tui.rb
+If the cursor is placed on the first line, and I
+begin sideways scrolling (in a narrow window).
+Then I get rendering fuckup.. maybe xterm/ncurses issue?
+
+is it possible to probe ncursesw for if a glyph is
+renderable? In case the glyph cannot be rendered I would
+like to render an <U-ABCD> instead (glyph-missing).
+
+
+
+lazy policy
+===========
+
+Lets be lazy. For instance the user resizes the window 
+many times, and the repaint cannot catch up with the same
+speed. We don't want 10 operations to be queued, we
+want resize to be lazy so resize occurs first time we
+do a repaint (unless some other operation needs to access
+the updated data). 
+
+
+
+vertical move policy
+====================
+
+When moving the cursor down/up multiple times, we want
+the cursor to stay inside the initial column.
+For instance there can be fullwidth glyphs which makes
+the initial column ambigues.
+For instance there can be tabs which totally screw up
+the cursor. 
+These elements should not affect the cursor_x position.

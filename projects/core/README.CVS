@@ -1,0 +1,41 @@
+AEDITOR 
+http://aeditor.rubyforge.org/
+
+
+CVS checkout
+=================
+
+Follow this procedure in order to get things working:
+
+   1.   your current dir should be "cvs/projects/."
+
+   2.   create symlink 'aeditor' pointing at 'core'
+        ln -s core aeditor
+        otherwise many require statements will fail.
+
+   3.   setenv RUBYLIB `pwd`
+
+   4.   cd into "cvs/projects/core/."
+
+   5.   create symlink 'backend' pointing at 'source'
+        ln -s source backend
+        otherwise many require statements will fail.
+
+
+Running things
+=================
+
+You should now be able to execute things within 
+either the 'aeditor' dir or within the 'source' dir.
+Like this:
+
+> cd source
+> ruby test_convert.rb
+Loaded suite TestConvert
+Started
+.............
+Finished in 0.05778 seconds.
+
+13 tests, 54 assertions, 0 failures, 0 errors
+>
+

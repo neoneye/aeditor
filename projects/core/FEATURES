@@ -1,0 +1,133 @@
+In this document I talk about *implemented* features.
+If it isn't implemented then >>don't add it<<.
+
+keybindings:
+ESC    = exit.
+F1     = unassigned.
+F2     = save.
+F3     = toggle block mode (implicit copy to clipboard).
+F4     = paste from clipboard.
+F5     = remove block.
+F6     = toggle scroll mode. 
+F7     = expand fold (cursor on same line as fold object).
+F8     = collapse area between '#[' and '#]' into fold.
+F9     = toggle macro mode.
+F10    = play current macro.
+F11    = unassigned.
+F12    = unassigned.
+CTRL-U = undo.
+CTRL-R = redo.
+HOME   = toggle between indentation point and beging of line.
+END    = move to end of line.
+PGUP   = move one page up.
+PGDN   = move one page down.
+UP     = move one line up (in scroll mode it scrolls).
+DOWN   = move one line down (in scroll mode it scrolls).
+LEFT   = move one unit left (in scroll mode it scrolls).
+RIGHT  = move one unit right (in scroll mode it scrolls).
+
+
+customization:
+* tabsize 
+* cursor-through-tabs:  enable/disable.
+* colors
+
+
+undo/redo:
+* undo/redo multiple levels.
+  ALL:    Take a snapshot of everything, restore it later.
+  LINE:   Take a snapshot of current-line, restore it later.
+  CURSOR: Take a snapshot of position, restore it later.
+  most commands generate memento-data, but eg: Resize doesn't.
+* record/play macros.
+* [user-friendlyness + aestetic detail] if you undo/redo an 
+  movement-command then it attempts to preserve the 
+  cursor-position within the view. This is IMMUNE to resize!  
+  I have never seen any editors with such preservation.
+
+
+misc features:
+* virtual-space.
+* resize cellarea, the minimal heigth of the edit-area is 1.
+* ensure cursor is visible all the time (View#refocus_x). 
+  if you do movement outside the view then the
+  view is move so that the cursor becomes visible.
+  if you scroll the view then the cursor will follow.
+* compensate for vertical screw. With some commands if
+  you repeately do undo/redo, then you can observe that
+  the cursor is preserved at its initial position.
+  Example: block-paste, block-remove, joinline, breakline.
+  In some editors (kwrite) you will observe that Y screws.
+* parse command-line-arguments.
+  main.rb [options] [file ..]
+* hard-errors is outputted to the log file, which
+  you can find in your temp directory.
+* save-file: makes a ".bak" before writting to disk.
+
+
+rendering:
+* partial-repaint, do as little as necessary. 
+  ALL:    Either repaint everything,
+  LINE:   or repaint the current_line,
+  CURSOR: or simply just move the cursor elsewhere.
+* decorate-left, indicates with an arrow-left if there 
+  is text outside the left border.
+* decorate-right, indicates with an arrow-right if there 
+  is text outside the right border.
+* decorate-eol, indicates the last-letter on the line.
+* decorate-tab, so that you can distinguish TABs from spaces.
+* show the current position: physical newline + percentage.
+  if cursor on top_most line then it shows TOP.
+  if cursor on bottom_most line then it shows BOT.
+  otherwise it shows the percentage.
+* show the name of the file being edited.
+* visual feedback so you can tell wheter or not, you are in
+  macro-recording mode.
+
+
+movement operations:
+* move_up/move_down.
+* move_pageup/move_pagedown.
+* scroll_up/scroll_down.
+* move_home: toggles between 'indent' and 'begin'.
+  in case the cursor is located on an empty line, then the lines 
+  above gets scanned in order to determine the indentation-level.
+* move_end.
+* move_left/move_right.
+* scroll_left/scroll_right.
+
+
+edit operations:
+* insert text
+* backspace, is able to join lines.
+  attempts to erase the glyph at to the left side of the cursor.
+  if beging at line, then it will append to the previous line.
+* breakline (enter). If the cursor is within an edit-object, then
+  it will be splitted. If the left part of the split is pure spaces,
+  then they will be discarded (VSpace, CursorThroughTabs).
+  is able to do auto-indentation.
+* blocking: cut, copy, paste. 
+* folding: Supports nested folding.
+  you choose either assign a name to the fold, or leave it
+  annomously. 
+  fold-begin tag is "#["
+  fold-end tag is "#]"
+  press F8 in order to collapse into fold.
+  press F7 in order to expand from fold.
+
+
+design patterns is used heavily in this code:
+* adaptor, see: Convert::from_lineobjs_into_bufferobjs.
+* bridge, see: Cellarea.
+* command, see: Command, Commands
+* composite, see: LineObjects::Fold, BufferObjects::Fold.
+* flyweight, see: EditObjects, Commands#execute(parent).
+* memento, see: Caretaker, Buffer#get/set_state.
+* model view controller, see: Buffer, View, Controll.
+* observer, see: Edit, Buffer.
+* prototype, search the code fore: #deep_copy.
+* state, see: Edit.
+* strategy, see: EditObjects.
+* template method, see: BufferVertical.
+* visitor (ruby special visitor), see: MeasureMixins.
+* visitor (accept/visit), see: RenderVistor.

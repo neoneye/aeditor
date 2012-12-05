@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+	<title>Status</title>
+	<link href="style.css" rel="stylesheet" />
+</head><body>
+<div class="visible">
+<h1>Project Status</h1>
+
+<h2>What am I doing right now ?</h2>
+<p>At the moment I am experimenting with many things,
+which hopefully will find its way into the core of AEditor.
+</p>
+<ol>
+<li><tt>Apr-2004</tt>
+Finally I got the regexp engine right. I have released both
+version 0.8 and version 0.9. It now passes 96.66 % of the 
+rubicon tests.
+<li><tt>Mar-2004</tt>
+I have been working on a <a href="http://neoneye.dk/rubybook/">book about Ruby</a> 
+for the last month. Yes, Im still looking at regexp. 
+<li><tt>Feb-2004</tt>
+Looking at nested regexp's, this stuff is complex I must admit.
+<li><tt>Jan-2004</tt>
+Still looking at regexp. I have made a new design, which should
+allow for nested expressions and better backtracking. 
+<li><tt>Dec-2003</tt>
+regexp-engine version 0.7, passes 92.5 % of the rubicon testcases (quite good I would say).
+Mark Sparshatt has initiated working on perl6 regexp-compatibility.
+At the moment I focus on optimization and bugfixing.
+<li><tt>Nov-2003</tt> 
+<a href="http://rubyforge.org/cgi-bin/viewcvs/cgi/viewcvs.cgi/projects/regexp_engine/?cvsroot=aeditor">regex engine</a>
+can now do the fundemental operations.</li>
+<li><tt>Oct-2003</tt> 
+<a href="http://rubyforge.org/cgi-bin/viewcvs/cgi/viewcvs.cgi/projects/experimental/nfa_to_dfa/?cvsroot=aeditor">regex engine</a>. Damaged my 
+left food, it is hard to do programming when you only feel pain!
+<a href="http://rubyforge.org/cgi-bin/viewcvs/cgi/viewcvs.cgi/projects/experimental/iterator2/?cvsroot=aeditor">robust-iterator</a>.</li>
+<li><tt>Sep-2003</tt> 
+<a href="http://rubyforge.org/cgi-bin/viewcvs/cgi/viewcvs.cgi/projects/experimental/unicode/?cvsroot=aeditor">unicode experiments</a>, 
+<a href="http://aeditor.rubyforge.org/softwrap.html">analasis of word-wrap</a>, 
+<a href="http://aeditor.rubyforge.org/pagedown_resize.html">analasis of pagedown</a>, 
+<a href="http://rubyforge.org/cgi-bin/viewcvs/cgi/viewcvs.cgi/projects/experimental/custom_widget_foxtoolkit/?cvsroot=aeditor">fox-GUI-frontend</a>.</li>
+</ol>
+
+<h2>Iteration 3 - Usable</h2>
+<p>Many editing operations is working. Still regex is missing.
+Goal for me is to glue the editor-backend (Ruby) together with 
+the frontends (C++).</p>
+<p>The AEditor-backend is written in Ruby, where
+I use test-first development. Status at this very moment is:
+<tt>403 tests, 1407 assertions, 0 failures, 0 errors</tt>.
+I have never used TDD in such big scale, it really rocks.
+Lack of unit-testing was a major problem with earlier iterations 
+of this project, things were hard(impossible) to debug.
+There is a screenshot of the Ncurses frontend
+[<a href="aeditor_shots/004.png">here</a>].
+</p>
+<p>The Fox-AEditor-frontend is written in C++, and is at
+a very early stage. I hope to embed this widget into 
+FreeRIDE some day.
+</p>
+<p>I am conducting some experiments with embedding
+[<a href="ruby_cplusplus/index.html">ruby into c++</a>].
+Which I use for the GUI-widgets (Fox, GTK, QT, OpenGL).
+</p>
+<p>The current top-entries in my todo-list says; 
+Implement markers.  
+Make the Fox-widget usable. 
+See more status 
+[<a href="http://rubyforge.org/cgi-bin/cvsweb.cgi/projects/core/TODO?cvsroot=aeditor">TODO</a>,
+<a href="http://rubyforge.org/cgi-bin/cvsweb.cgi/projects/core/FEATURES?cvsroot=aeditor">FEATURES</a>,
+<a href="http://rubyforge.org/cgi-bin/cvsweb.cgi/projects/core/CHANGES?cvsroot=aeditor">CHANGES</a>].
+</p>
+
+
+<h2>Iteration 2 - Prototype</h2>
+<p>The primary goal was to make editing possible, which I
+achieved. It has a very flexible editing engine which 
+supports folding, wordwrap, symbols, markers. It has a
+seperate ncurses frontend. The overall design is clean.
+Unfortunatly did blocking not fit into this design, which send
+me back to the drawing board. Thus iteration 2 is paused!
+Iteration 3 has become so good that Iteration 2 is completely dead.</p>
+
+
+<h2>Iteration 1 - Prototype</h2>
+<p>This only worked with BorlandC31 (MSDOS only). It was
+capable of: line-folding, scope-folding, wordwrap, hiliting,
+undo/redo. I had unfortunatly underestimated the need
+for editing, so it has only very limited editing capabilities.
+Its design was flawed, masochistic, inflexible and non-scalable.</p>
+
+<hr />
+<p class="cvs">
+<a href="http://rubyforge.org/cgi-bin/viewcvs/cgi/viewcvs.cgi/projects/documents/homepage/status.html?cvsroot=aeditor">$Date: 2004/04/27 16:37:17 $</a>
+</p>
+
+</div>
+</body></html>

@@ -1,0 +1,76 @@
+Ruby - Coverage
+
+
+Purpose
+=======
+
+>> this package is outdated, rcov is way better << 
+
+This tool helps identify those lines of code in your 
+program which didn't got executed while running.
+
+NaHi is the author of the original 'coverage.rb',
+47 lines of Ruby code. Today it outputs nice HTML.
+
+
+
+License
+=======
+
+Ruby's license
+
+
+Install
+=======
+
+Follow these 3 steps in order to install
+
+    ruby install.rb config
+
+    ruby install.rb setup
+
+    ruby install.rb install
+
+
+Usage
+=====
+
+Insert '-rcoverage' when you wish to make coverage output.
+For instance:
+
+    ruby -rcoverage test_all.rb
+
+It should generage an 'index.html' file, containing coverage info.
+
+
+Credits
+=======
+
+NAKAMURA Hiroshi (NaHi) for the original coverage code.
+
+Mauricio Julio Fernández Pradier, lots of improvements.
+
+Robert Feldt, for suggestions.
+
+Alex Pooley, for eliminating warning(s).
+
+
+
+Bugs reports (rubyforge account required)
+=========================================
+
+If you find any misbehavier, then please submit it here:
+http://rubyforge.org/tracker/?atid=149&group_id=18&func=browse
+
+
+
+Feature requests (rubyforge account required)
+=============================================
+
+If there is something you wish, then tell it so we can figure out
+how to make 'coverage' capable of it.
+http://rubyforge.org/tracker/?atid=152&group_id=18&func=browse
+
+
+
+end of document

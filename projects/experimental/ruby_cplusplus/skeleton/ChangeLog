@@ -1,0 +1,48 @@
+What is happening?  is there any progress?
+The Rubyembed Project
+$Id: ChangeLog,v 1.4 2003/09/20 14:14:00 neoneye Exp $
+
+version 0.3, 20-Sep-2003
+*	renamed everything (attempt to make things more intuitive):
+	'insert' -> 'execute'
+	'repaint' -> 'callback'
+	'View' -> 'ExampleBridgeCpp'
+	'Impl' -> 'ExampleBridgeCppImpl'
+	'Redirect' -> 'ExampleBridgeRuby'
+	'RUBY_CPP' -> 'NAMESPACE_RUBY'
+	'EMBEDRUBY' -> 'NAMESPACE_LIBRARY'
+	'RubyError' -> 'Error'
+	'ViewQt' -> 'ExampleCpp'
+	'RubyView' -> 'ExampleRuby'
+	'redirect.h' -> 'example_bridge_ruby.h'
+	'redirect.cpp' -> 'example_bridge_ruby.cpp'
+	'redirect.i' -> 'example_bridge_ruby_wrap.i'
+	'Embed' -> 'Wrapper'
+
+*	removed the manual setup stuff, so that only the
+	example of how to use SWIG is there (simplifies things).
+
+*	moved AEditor from sourceforge.net to rubyforge.org.
+
+*	using rb_path2class(klass_name) instead of
+	rb_const_get(rb_cObject, rb_intern(klass_name)).
+
+
+version 0.2, 17-Apr-2003
+*	"RubyView" can now inheirit from "Redirect".
+	This hasn't been possible before, so instead I used
+	an ugly workaround. Thanks to "Steve Hart" for this.
+	Apparently there is a difference on how you 
+	intantiate ruby-things inside c++. This difference
+	is a SWIG problem and should be solved in 3.1.20.
+
+*	autoconf detects automaticly where ruby is located.
+	you no longer need to specify 
+	./configure --with-ruby=/mylongpathtoruby
+
+*	ruby_script("embed"); has been added. It assigns a
+	name to the $0 variable, so we can test where or not
+	our ruby files is being executed from c++.
+
+version 0.1, 04-Apr-2003
+*	initial version

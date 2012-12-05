@@ -1,0 +1,23 @@
+task :default => :test
+
+def freetype_config
+	cflags = "" 
+	IO.popen("freetype-config --cflags") {|f| cflags = f.read }
+	cflags.chomp!
+
+	libs = "" 
+	IO.popen("freetype-config --libs") {|f| libs = f.read }
+	libs.chomp!
+
+	#p cflags, libs
+	[libs, cflags]
+end
+
+task :compile do
+	libs, cflags = freetype_config
+	sh "gcc main.c #{cflags} #{libs} -lm"
+end
+
+task :test => [:compile] do
+	sh "./a.out font.ttf hello 1> stdout 2> stderr"
+end

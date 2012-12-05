@@ -1,0 +1,169 @@
+20-02-2005 Neoneye <neoneye@gmail.com>
+*	LineEdit class added.
+
+19-02-2005 Neoneye <neoneye@gmail.com>
+*	multibuffer is now working.
+
+16-02-2005 Neoneye <neoneye@gmail.com>
+*	released version 2.4 (turbo release).
+*	finally got the #test_typical_insert1 testcase working, so that
+	I can be sure that insert works relatively ok.
+*	now #test_typical_remove1 is working.
+*	added nicer colors.
+
+15-02-2005 Neoneye <neoneye@gmail.com>
+*	after being sick for some days and a short 3 days ski vacation,
+	im now back again with a fresh mind.
+	I built a lego model with postit notes attached to it,
+	wrote the lexer cache from scratch again. Discovered a few
+	errors in my old lexer cache (such as not erasing keys from
+	the LRU cache when invoking #dirty). However even though its
+	rewritten, full-propagation still occurs. It were supposed
+	to be minimal.
+*	realized that I needed a dirty flag array to the Lexer::Simple.
+
+06-02-2005 Neoneye <neoneye@gmail.com>
+*	We now count number of hits+misses per update.
+*	propagate the right-state to the next line.
+
+05-02-2005 Neoneye <neoneye@gmail.com>
+*	enabled all those things which I had forgotten when I wrote
+	the Lexer::Simple. Now it renders very fast.
+*	Flush the input queue, so that keystrokes doesn't lags.
+*	Fixed bug in main_tui.rb's render_row caching.
+
+04-02-2005 Neoneye <neoneye@gmail.com>
+*	got early syntax coloring working.
+*	integrated LRU cache with the linestate cache and named it
+	Lexer::Simple. A lexer must derive from this class and just
+	overload the lex_line method. The simple class with take care
+	of all caching.
+*	wrote a LRU cache so that I can remember the colorization per
+	visible line.
+
+03-02-2005 Neoneye <neoneye@gmail.com>
+*	early code for a lexer cache.
+
+02-02-2005 Neoneye <neoneye@gmail.com>
+*	released version 2.3 (darkmatter release).
+*	[main] @red_column added, which for instance colorizes the 80th
+	column, so that you are warned if you have too long lines.
+*	by invoking raw() rather than cbreak() in tui.c, then we
+	get all the input from ncurses. For instance with cbreak
+	if I typed CTRL-S I experienced that the display went dead
+	and nothing happened.. until I typed CTRL-Q. Xterm or ncurses 
+	must have been in an odd mode. Luckily this issue is now gone.
+*	resizing the window now clears the cache, so we no longer
+	get rendering fuckups.
+*	lines with fullwidth glyphs got rendered incorrect.
+	lines wider than the view also got rendered incorrect.
+	It no longer causes rendering fuckup.
+
+31-01-2005 Neoneye <neoneye@gmail.com>
+*	improved View#move_linebegin's smart mode so it gotoes the 
+	indentation point even though its placed on an empty line.
+*	added View#edit_breakline which can do autoindent.
+
+29-01-2005 Neoneye <neoneye@gmail.com>
+*	We can now convert selections into folds.
+
+28-01-2005 Neoneye <neoneye@gmail.com>
+*	In case we already have rendered a row.. then we no longer
+	render it again. Now speed is better, but still not acceptable.
+*	Now colors is rendered nice (again), previously it was rendered
+	with the ruby-dl wrapper... now its rendered with my extension.
+
+27-01-2005 Neoneye <neoneye@gmail.com>
+*	I can do some rendering via this new tui extension..
+	but somehow the background color is weird.
+	At least memory stays on 7.3 mbytes, and 3.4 mbytes stack.
+
+26-01-2005 Neoneye <neoneye@gmail.com>
+*	early code for extension that wraps both ncursesw and setlocale,
+	only getch() and wcwidth() needs to get wrapped now.
+
+24-01-2005 Neoneye <neoneye@gmail.com>
+*	investigated memory-grow problem.
+	main_tui.rb's #update, does a 100kbytes grow per update if 11x33, 
+	200kbytes grow if 27x33, 300kbytes grow if 45x33.
+	Really bad.  There must be a leak of some kind.
+
+23-01-2005 Neoneye <neoneye@gmail.com>
+*	released version 2.2 (future release).
+*	Move word left/right imported from aeditor1.x.
+*	Move to buffer top/bottom added.
+*	Search up and down with multiline patterns now works.
+*	Delete key is now working.
+
+22-01-2005 Neoneye <neoneye@gmail.com>
+*	Early code for delete key.
+*	Rendering with colors (also nice selections).
+*	Copy/Paste/Cut is now working.
+*	Line numbering are now working.
+*	View#move_pagedown/pagedown are now working.
+
+21-01-2005 Neoneye <neoneye@gmail.com>
+*	got control of libncursesw.so's colors, it took
+	some time because the global variable COLORS was
+	difficult to reach via ruby-dl.
+*	padding to the width of the term, so that background
+	is rendered nicer.
+*	nicer rendering of tabs.
+*	set and restore title of terminal.
+
+18-01-2005 Neoneye <neoneye@gmail.com>
+*	released version 2.1 (megacorp release).
+*	View#scroll_to_cursor now considers folded lines.
+*	nicer_rendering_of_folds._
+
+17-01-2005 Neoneye <neoneye@gmail.com>
+*	discovered problem with vertical scrolling when
+	having folds. Realized that I need more conversion.
+*	View#vy2ay added (vy=visible-y, ay=absolute-y).
+*	View#ay2vy added.
+
+16-01-2005 Neoneye <neoneye@gmail.com>
+*	bookmarks is now implemented.
+	CTRL-K K  ->   toggle bookmark.
+	CTRL-K P  ->   goto prev bookmark.
+	CTRL-K N  ->   goto next bookmark.
+*	discovered more rendering fuckup in XTerm,
+	in case I insert a bookmark and scroll sideways
+	on a line containing fullwidth glyphs. Then depending
+	on if the cursor is before or after, then either
+	garbage or no garbage. Very confusing.
+
+12-01-2005 Neoneye <neoneye@gmail.com>
+*	folded lines are no longer rendered.
+
+04-01-2005 Neoneye <neoneye@gmail.com>
+*	got rid of rendering fuckup in xterm.
+	when scrolling to a line which contains some
+	halfwidth glyph, and then attempting to render 
+	some fullwidth glyphs then the glyph is 
+	rendered incorrect. It can be fixed by clearing
+	the line before printing new glyphs.
+
+03-01-2005 Neoneye <neoneye@gmail.com>
+*	released version 2.0 (very barebone release).
+*	Scrolling is now working.
+*	view.move_to_linebegin/end added.
+*	I can now load and save files actually this message 
+	is written with aeditor-2.0!  Amazing.
+
+02-01-2005 Neoneye <neoneye@gmail.com>
+*	The canvas is now being probed for the glyph-width.
+	The cursor now is positioned correct when 
+	doing insert and backspace, no matter if its
+	halfwidth, fullwidth or tabs. More interesting
+	the #py2x and the #xy2p methods are now symmetric,
+	which suprises me.
+
+01-01-2005 Neoneye <neoneye@gmail.com>
+*	primitive editing: insert, backspace, move.
+*	the model stores the text in an UTF-8 encoded string.
+*	changes to the model goes via #replace(x1,y1,x2,y2,text).
+*	wrapper for libncursesw (curses doesn't do wide chars).
+*	76 tests, 182 assertions, 0 failures, 0 errors.
+*	output goes to the $HOME/aeditor-2.0.log file.
+*	core.rb 436 lines, main_tui.rb 100 lines = 536 lines.

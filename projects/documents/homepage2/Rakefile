@@ -1,0 +1,9 @@
+task :default => :upload
+
+task :upload do
+	sh "scp -r * neoneye@rubyforge.org:/var/www/gforge-projects/aeditor/."
+end
+
+task :uploadhtml do
+	sh "scp *.html neoneye@rubyforge.org:/var/www/gforge-projects/aeditor/."
+end

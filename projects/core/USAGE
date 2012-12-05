@@ -1,0 +1,112 @@
+Keybindings
+==================
+This is the Ncurses-frontend for AEditor, its keybinding 
+system is _very_ limited. Thus most operations is bound 
+to the function keys (F1..F12). Fancy combinations like 
+CTRL+C and SHIFT+ARROW_LEFT is NOT possible (yet). 
+
+
+Exit
+==================
+Pressing <ESC> will immidiately quit AEditor.
+TODO: buffer is not saved, do you really want to quit?
+
+
+Save
+==================
+<F2> saves the file to disc. AEditor *never* overwrites
+the original file; instead it appends '.bak' to the
+original file before storing data to disc.
+
+
+Cut, Copy, Paste
+==================
+Pressing <F3> toggles between block-mode and normal-mode.
+First time you press <F3>, you will get into block-mode.
+Second time you press <F3>, it will take a copy of the 
+selected range and bring you back into normal-mode.
+
+<F4> pastes the content of the clipboard at the cursors
+current position.
+
+<F5> destroyes the selected range.
+
+
+Scrolling
+==================
+Pressing <F6> toggles between scroll-mode and normal-mode.
+Scroll-mode changes the behavier of all movement-operations,
+instead of moving the cursor, they move the window and
+the cursor just follow.
+
+
+Folding
+==================
+<F8> collapses a range of lines into a fold which only
+takes up ONE line. You can choose the range by inserting
+a begin-tag '#[' and a end-tag '#]'. The cursor can be
+located on an arbitrary line between the begin-tag and 
+end-tag.
+
+<F7> expands a fold so that things get restored again.
+The cursor must be located on the fold-tag. Otherwise
+nothing happens.
+
+You can supply a name to the fold, so that it is easier 
+to recall what is contained within the fold, by simply 
+letting a comment (test) follow the begin-tag.
+
+  if true #[ test   \\  
+    puts "hello"     >>   if true [ 2 test ]
+  end #]            //
+
+
+Macros
+==================
+Pressing <F9> toggles between macro-mode and normal-mode.
+First time you press <F9>, AEditor will start recording
+all succeding operations until you leave macro-mode.
+Second time you press <F9>, it will take a copy of the
+sequence of operations and place it in a macro, you 
+will leave macro-mode.
+
+<F10> plays the latest macro.
+
+
+Multilevel Undo
+==================
+<CTRL-U> undoes the previous operation. 
+
+<CTRL-R> redoes earlier undone operations. 
+
+
+Movement
+==================
+<ARROW_UP> moves the cursor to the line above.
+
+<ARROW_DOWN> moves the cursor to the line below.
+
+<ARROW_LEFT> moves the cursor one unit to the left. 
+
+<ARROW_RIGHT> moves the cursor one unit to the right. 
+
+<PAGE_UP> moves one page up.
+
+<PAGE_DOWN> moves one page down.
+
+<HOME> toggles between the indentation-point and
+the begining of line.
+
+<END> moves to the end of line.
+
+
+Editing
+==================
+<BACKSPACE> removes the letter to the left of the cursor.
+If the cursor is at the begining of the line, it will
+join the line with the line above.
+
+<ENTER> insert newline at the cursor position, does 
+autoindent.
+
+<TAB> inserts a tabulator character.

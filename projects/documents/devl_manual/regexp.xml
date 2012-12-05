@@ -1,0 +1,237 @@
+<section id="regexp">
+<title>Regular Expression Engine</title>
+<para>Search For advanced patterns in text. The common standard syntax
+are <productname>perl5</productname>, however its old and kludgy. More interesting
+is the recently proposed <productname>perl6</productname> regexp syntax, which I plan 
+to use as default regexp syntax in AEditor. At the moment there is a fully 
+funtional perl5 parser frontend, and a very limited perl6 frontend. It is 
+easy to write other parsers when/if needed.</para>
+
+<section>
+<title>Synopsis</title>
+<itemizedlist>
+<listitem><para>Overview of its features</para></listitem>
+<listitem><para>How does the engine work internally?</para></listitem>
+</itemizedlist>
+</section>
+
+<section>
+<title>Syntax</title>
+<para>placeholder.
+</para>
+
+<table><title>Ruby and Perl5 syntax</title>
+<tgroup cols="2">
+<tbody> 
+&regexp_syntax_reference;
+</tbody>
+</tgroup>
+</table>
+
+<table><title>Perl6 syntax</title>
+<tgroup cols="2">
+<tbody> 
+<!-- TODO: talk about perl6 -->
+</tbody>
+</tgroup>
+</table>
+
+</section>
+
+<section><title>Scanner Optimizations</title>
+<para>Simple optimizations is used at the moment.
+</para>
+<itemizedlist>
+<listitem><para>left2right maximization. If we just
+did depth-first-search then it would maximize from right2left,
+which is very inefficient. By adding some more logic, then
+maximization occurs from left 2 right (efficient).</para></listitem>
+<listitem><para>pathend if below minimum.</para></listitem>
+</itemizedlist>
+<para>Eventual future optimizations.
+</para>
+<itemizedlist>
+<listitem><para>fastmaps.</para></listitem>
+<listitem><para>convert '<command>a*b</command>' patterns into '<command>b(?&lt;:a*)</command>'.</para></listitem>
+<listitem><para>instead of cloning, then use 
+copy-on-write (COW) strategy.</para></listitem>
+<listitem><para>binary branch when maximizing.</para></listitem>
+<listitem><para>C++ implementation.</para></listitem>
+</itemizedlist>
+</section>
+
+<section><title>Detecting Endless Loops</title>
+<para>Nested repeats, empty expressions may cause 
+endless loops, unless we detect that we are dealing
+with an endless loops (early).</para>
+</section>
+
+<section><title>Left to Right</title>
+<para>Also when dealing with Repeats, we must attempt to
+maximize the left-most repeats first. At the moment we
+are doing the exact opposite (yields the same result, but 
+very ineffective). This problem arises in this example:</para>
+<informalexample>
+<programlisting>
+/a(.*)b(.*)c/.match("0a1b2b3c4").to_a 
+#=> ["a1b2b3c", "1b2", "3"]
+</programlisting>
+</informalexample>
+<para>A simple inefficient recursive algorithm.
+It first reaches the left-most repeat. From there
+it tries to scan the following expression 
+'<command>b(.*)c</command>'.
+Thus the right-most repeat will be maximized before it
+again can return to the left-most repeat. It will then
+try to maximize the right-most repeat.. again!
+At some point the left-most repeat will be maximized.</para>
+<screen>
+abc          -
+a.bc
+a.b.c
+a.b..c
+a.b...c      OK
+a.b....c
+a.b.....c
+a..bc        -
+a...bc
+a...b.c      OK
+a...b..c
+a...b...c
+</screen>
+<para>
+The above senario is what I call: right2left maximization.</para>
+
+<para>Lets talk about how left2right maximization occurs.
+First we try maximize the left-most repeat, add keep track
+of possible matches.
+</para>
+<screen>
+ab
+a.b          remember
+a..b          
+a...b        remember
+a....b        
+a.....b       
+a......b
+</screen>
+<para>For each of the remembered positions (in reverse, because its
+greedy), we will try to maximize the second repeat.</para>
+<screen>
+a...bc
+a...b.c      OK
+a...b..c      
+a...b...c     
+a...b....c
+</screen>
+<para>The remaining remembered positions can be discarded, because
+we now have the left-most-longest match.</para>
+</section>
+
+<section><title>Left2Right Indepth</title>
+<para>The left-most repeat which we are attempting to maximize, uses a greedy algorithm.
+The remaining repeats, uses a strategy where they stop when they reaches the LAST node.
+</para>
+
+<screen>/a.*b.*c.*d/.match("abbcdcdd")</screen>
+
+<figure><title>maximization of first repeat</title>
+<graphic fileref="regexp_repeat1.png" /></figure>
+
+<para>We found 2 matches: 
+<screen>
+ab.cd
+a.bcd
+</screen>
+Lets pick the last match (a.bcd) and try maximizing rep2.
+</para>
+
+<figure><title>maximization of second repeat</title>
+<graphic fileref="regexp_repeat2.png" /></figure>
+
+<para>We found 1 match: 
+<screen>
+a.b..cd
+</screen>
+Lets try maximizing rep3.
+</para>
+
+<figure><title>maximization of third repeat</title>
+<graphic fileref="regexp_repeat3.png" /></figure>
+
+<para>We found 1 match: 
+<screen>
+a.b..c.d
+</screen>
+Thats our final result.
+</para>
+</section>
+
+<section><title>Nested Expressions</title>
+<para>placeholder.
+</para>
+<informalexample>
+<programlisting>
+/(a.*b){2}/.match("0a1b2ba3b4").to_a 
+#=> ["a1b2ba3b", "a3b"]
+</programlisting>
+</informalexample>
+<screen>
+ab
+a.b         OK
+a..b
+a...b       OK
+a....b
+a.....b
+a......b    OK
+a.......b
+a........b  END
+</screen>
+<para>Next
+</para>
+<screen>
+a......bab  END
+a...bab 
+a...ba.b    OK
+a...ba..b
+a...ba...b
+a...ba....b END
+</screen>
+<para>We found the right match.
+</para>
+</section>
+
+<section><title>How to break endless loops?</title>
+<para>An expression such as /<command>(){2,}</command>/ will loop forever unless
+we stop it. In this case there are 3 properties we may look at.
+<orderedlist>
+<listitem><para>Are maximum equal infinity?</para></listitem>
+<listitem><para>Does it have zero width?</para></listitem>
+<listitem><para>Are index &gt; minimum?</para></listitem>
+</orderedlist>
+That will break the endless loop, and output <command>["", ""]</command>.</para>
+
+<para>Let consider /<command>()*</command>/, with the above rules
+it will output <command>["", nil]</command> which is wrong, the 
+<emphasis>nil</emphasis> is incorrect. Because its a greedy repeat we 
+expect the repeat to run at least one time, so the output would be 
+<command>["", ""]</command>. A sligth refinement of the rules is necessary.
+</para>
+
+<orderedlist>
+<listitem><para>Are index &gt; one?</para></listitem>
+</orderedlist>
+
+<para>When all these 4 rules are satisfied we must stop looping, otherwise
+we will overwrite the content of our subcaptures with empty strings
+which is not desired. For instance see the difference between my
+engine and Oniguruma, decide for yourself what output is best.
+<screen>
+assert_regex(["aaa", "a"], "a(a|)*", "aaabbb", :oniguruma_output=&gt;["aaa", ""])
+</screen>
+As you can see Oniguruma doesn't preserve capture[1], because the endless
+loop detection bails out too late, thus causing the capture to be cleared.
+</para>
+</section>
+
+</section>

@@ -1,0 +1,94 @@
+<section>
+<title>Install</title>
+<para>Little is necessary, thus it should take 15 minutes max to complete
+installation.
+</para>
+
+<section>
+<title>Installing xsltproc</title>
+
+<para>There exists many <productname>DocBook</productname> applications, 
+which can output many more formats than what 
+<application>xsltproc</application> is capable of.
+But in this text we will only focus on using 
+<application>xsltproc</application>.</para>
+
+<para><ulink url="http://xmlsoft.org/XSLT/xsltproc2.html">xsltproc</ulink> is
+the application which takes your docbook files as input and outputs xhtml.
+</para>
+
+</section>
+
+<section>
+<title>Installing DTD+stylesheet</title>
+
+<para>place your downloaded files in the 
+<filename class="directory">~/docbook/</filename> directory:
+<screen>
+shell% mkdir ~/docbook
+shell% cd ~/docbook
+shell% 
+</screen>
+</para>
+
+<table frame="all"><title>Download these files</title>
+<tgroup cols="2" align="left" colsep="0" rowsep="1">
+<tbody>
+<row>
+  <entry><ulink url="http://www.oasis-open.org/docbook/xml/4.2/docbook-xml-4.2.zip">
+  <filename>docbook-xml-4.2.zip</filename></ulink> (78428 bytes)</entry>
+  <entry>DTD</entry>
+</row>
+<row>
+  <entry><ulink url="http://prdownloads.sourceforge.net/docbook/docbook-xsl-1.61.3.tar.gz?download">
+  <filename>docbook-xsl-1.61.3.tar.gz</filename></ulink> (1267005 bytes)</entry>
+  <entry>Stylesheet</entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+
+<para>Your <filename class="directory">~/docbook/</filename> should contain this:
+<screen>
+shell% cd ~/docbook
+shell% ls -la
+-rw-r--r--  1 neoneye  neoneye    78428 22 Aug 11:49 docbook-xml-4.2.zip
+-rw-r--r--  1 neoneye  neoneye  1267005 22 Aug 11:51 docbook-xsl-1.61.3.tar.gz
+shell%
+</screen>
+</para>
+
+<para>Extract <filename>docbook-xml-4.2.zip</filename> into 
+<filename class="directory">~/docbook/xml/</filename>
+<screen>
+shell% cd ~/docbook
+shell% mkdir xml
+shell% cp docbook-xml-4.2.zip xml/.
+shell% unzip xml/docbook-xml-4.2.zip
+</screen>
+</para>
+
+<para>Extract <filename>docbook-xsl-1.61.3.tar.gz</filename> into 
+<filename class="directory">~/docbook/xsl/</filename>
+<screen>
+shell% cd ~/docbook
+shell% tar xzvf docbook-xsl-1.61.3.tar.gz
+shell% mv docbook-xsl-1.61.3 xsl
+</screen>
+</para>
+
+<para>Validate that you extracted things correct.
+<screen>
+shell% cd ~/docbook
+shell% ls xml/docbookx.dtd
+xml/docbookx.dtd
+shell% ls xsl/xhtml/docbook.xsl
+xsl/xhtml/docbook.xsl
+shell% 
+</screen>
+</para>
+
+<para>Installation is successfully completed.</para>
+</section>
+
+</section>

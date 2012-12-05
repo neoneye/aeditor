@@ -1,0 +1,11 @@
+<lypanov> neoneye: idea for aeditor: split window, select text in both sides, show diff
+<neoneye> lypanov: good idea
+<neoneye> lypanov: I had a look on winmerge.. a side-by-side diff for windows.. which can do syntax coloring..
+<lypanov> neoneye: another one: % isn't that good in vim. i think *much* more can be done easily
+<neoneye> lypanov: kind of the same would be nice
+<lypanov> neoneye: look at kde's diff program - kompare2  sometime. its very good
+<neoneye> lypanov: whats wrong with vims parentesis matching?
+<lypanov> neoneye: e.g, i'd like a way of selecting the current function, and then moving around
+<lypanov> neoneye: begin / end, while / end etc, should all be matchable
+<neoneye> true
+<neoneye> good idea

@@ -1,0 +1,37 @@
+AEditor version 1.x
+===================
+
+This application is a programmers editor. 
+
+You may find screenshots here:
+http://aeditor.rubyforge.org/wiki/wiki.pl?MainThemes
+
+
+Features
+========
+
+  1. syntax coloring for:  ruby, c++. 
+
+  2. multiple buffers.
+
+  3. undo/redo and macros.
+
+  4. easy to make color themes.
+
+  5. ruby configuration file.
+
+  6. written entirely in ruby.
+
+  7. ruby license.
+
+  8. crossplatform: unix, windows, mac.
+
+  9. has 2 default keymaps: cua and simon.
+
+ 10. windowmode/fullscreen mode.
+
+ 11. unittested:  446 tests, 1532 assertions.
+
+
+---------------
+End of document

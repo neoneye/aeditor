@@ -1,0 +1,497 @@
+06-sep-2004 Neoneye <neoneye@adslhome.dk>
+*	Added White Theme.
+
+05-sep-2004 Neoneye <neoneye@adslhome.dk>
+*	released version 1.9
+*	I wrote a more verbose experiment where I had a
+	hidden mainwindow.. and could spawn a dialogbox either
+	in windowed mode or fullscreen mode. This time I used
+	a non-modal approach and I had luck with inheriting
+	the dialogs from FXTopWindow, so that Escape is handled
+	correct. It took quite some time to figure out a nice
+	way to do shutdown. Finally I made it.. it worked.
+	Today I have backported these changes into AEditor.
+*	aeditor --help  now tells what the purpose of the program
+	are.. many unix programs forgets to mention their purpose.
+*	Settings -> Dump Theme now outputs to stdout again.
+*	Added keybindings: CTRL-L, CTRL-N, CTRL-W, CTRL-Q.
+*	Updated TUTORIAL with CUA bindings.
+*	I no longer send newline into the lexer, this should
+	prevent the lexer from crashing when I forget to deal
+	with that newline char.
+*	fixed bug in Buffer#selection_erase where I forgot to
+	update the model_iterator no longer causes fuckups,
+	such as invisible typing on the following line.
+*	Buffer now does render locking itself.. so that
+	when invoking undo/redo/macro/cut/copy/paste..etc
+	these operations are now rendered atomic (again).
+
+04-sep-2004 Neoneye <neoneye@adslhome.dk>
+*	Attempt to stop Escape from terminating the application,
+	by reimplementing FXDialogBox myself.. so that it has
+	same behavier.. except KEY_Escape doesn't close.
+	It doesn't clean up correct.. and leaves a zombie AEditor
+	process running. I have no idea what is wrong. 
+	The Escape problem has translated into another problem.
+*	renamed menuitems with 'Ctl' into 'Ctrl'.
+*	In case 'viewfox.rb' cannot load its dependencies it
+	now outputs its error-message without fork'ing,
+	so the console doesn't get cluttered up. It also provide
+	a better visual feedback.. that you can see on the
+	prompt when the fork is happening.
+*	now using FXDataTarget to update stuff in statusbar.
+
+01-sep-2004 Neoneye <neoneye@adslhome.dk>
+*	The pulldown menu now shows menuitems that spawns
+	a dialogbox with 3 dots. eg  Open...  Save As...
+*	CUA mode: SC+Pageup/down didn't work.
+*	CUA mode: removed superfloush variable, which I sometimes
+	forgot to update, so that it came out of sync.
+
+29-aug-2004 Neoneye <neoneye@adslhome.dk>
+*	released version 1.8
+*	finished the simpler configuration system,
+	so I now easily can add new option by typing:
+	def_option(:optionname, default_value, &validate).
+*	In case a $HOME/.aeditor dotfile cannot be found
+	instead it will now attempt to load the 
+	$progdir/config_default dotfile.
+*	Added Global#keymap = [:cua, :simon].
+
+28-aug-2004 Neoneye <neoneye@adslhome.dk>
+*	preparations for simpler configuration system.
+
+27-aug-2004 Neoneye <neoneye@adslhome.dk>
+*	made an new ligthweight History::Command::Macro
+	class, which doesn't take full memento snapshot.
+*	moved the old switch statement to a method named
+	#dispatch_keyevent_simon.. and added a 
+	new method #dispatch_keyevent_cua, it uses
+	Histrory::Command::Macro heavily. Now you can
+	do selections by using the shift + arrow keys.
+	When there is an selection and you insert text,
+	it first erase the selected text. This is CUA mode.
+*	CTRL-X = cut
+*	CTRL-C = copy  (where the selection is preserved).
+*	CTRL-V = paste
+
+26-aug-2004 Pinguin751 <pinguin751@hotmail.com>
+*	AEditor now auto-forks on startup (no & needed on command 
+	line)
+
+26-aug-2004 Neoneye <neoneye@adslhome.dk>
+*	In the GotoLine dialogbox you can now type an
+	integer.. and hit enter. Earlier you had to use
+	the mouse!
+*	Viewfox#apply_lexer used Array of pairs.. This
+	inefficiency has been moved to Buffer#output_cells.
+	Now #apply_lexer uses a Pair of Arrays.
+	Hopefully I will optimize the #output_cells some day.
+*	Added 500 milisecond delay to GC, resulting in 
+	better responsiveness.
+*	Vertical Scrollbar added.
+
+25-aug-2004 Pinguin751 <pinguin751@hotmail.com>
+*	replaced bunches of #puts statements with
+	$logger, so that output to console is prevented.
+
+25-aug-2004 Neoneye <neoneye@adslhome.dk>
+*	rubylexer: eval%{code   # now interprets as literal.
+*	rubylexer: more ambiguis cases solved.
+	[icg]variables followed by modulo or division
+	was interpreted wrong.
+*	when opening the 'viewfox.rb' file, it resulted
+	in 41477 instances of Array and 46294 instances
+	of String.  Now with a simple optimization it
+	only results in 3228 Arrays and 7694 Strings.
+
+24-aug-2004 Neoneye <neoneye@adslhome.dk>
+*	released version 1.7
+*	rubylexer2.. Literals can now decorate tabs and
+	interpolated code.
+*	renamed README -> INSTALL.
+	wrote new README about AEditors features.
+*	rubylexer2.. ambiguity between modulo operator
+	and literals are now reduced so its fairly ok.
+	Also reduced ambiguity between division operator
+	and regexp so its also acceptable.
+	Questionmark cond?a:b and Ascii ?l ambiguity
+	partially solved.
+*	rubylexer2.. recognize bad constructions such as:
+	1....2
+	@@@val
+	M:::C
+	?bad
+*	merged with branch 'b20040816'.
+*	removed code from LexerRuby::LexerOld.
+
+23-aug-2004 Neoneye <neoneye@adslhome.dk>
+*	rubylexer2.. Regexp, Strings, Backticks, Heredoc,
+	Multiline-Comment, Comment, Endoffile.. all now
+	can decorate tabs and interpolated code.
+
+22-aug-2004 Neoneye <neoneye@adslhome.dk>
+*	rubylexer2.. Regexp, Strings, Backticks can now 
+	span over multiple lines.
+	in case bad options are supplied to a regexp,
+	then its colored RED.. eg   /ab/TQ  is bad.
+
+20-aug-2004 Neoneye <neoneye@adslhome.dk>
+*	rubylexer2.. Literal's can now span over multiple lines.
+
+19-aug-2004 Neoneye <neoneye@adslhome.dk>
+*	began writing the LexerRuby2, which is almost as 
+	feature complete as LexerRubyOld. It has 2 bonuses:
+	1)  can identify bad tokens and color them red.
+	2)  identify balanced literals  e.g. %(a(b)c\)d)
+	Its also faster than the old lexer.
+
+18-aug-2004 Neoneye <neoneye@adslhome.dk>
+*	LexerCplusplus can now identify tabs inside
+	comment, mcomment, preproc, assembler.
+*	LexerCplusplus now sets the endofline_result_state.
+*	Delete key added.
+*	If there still were incoming key events when calling
+	@canvas.update.. then the repaint would be delayed
+	until the event-queue was empty. This was causing big
+	problems whenever you hold down a key.
+	Lyle Johnson pointed me right place in fox-FAQ, Thanks.
+
+17-aug-2004 Neoneye <neoneye@adslhome.dk>
+*	LexerCplusplus added.
+
+16-aug-2004 Neoneye <neoneye@adslhome.dk>
+*	Peña, Botp reported failing test_save2.
+*	Made bracketmatching a command (I had forgotten).
+*	Lyle Johnson told me how to output text to the statusbar,
+	now I finally can tell if im in macro-recording mode or not.
+*	Lyle Johnson also told me how to prevent the EditorWindow
+	from spawning at random positions. Thanks.
+
+15-aug-2004 Neoneye <neoneye@adslhome.dk>
+*	released version 1.6
+*	rescue LoadError has been added to 'main.rb'
+	so that it now simply outputs 'not installed'
+	rather than crashing when doing 'aeditor -v'.
+*	In case the fxruby component has un-expected
+	version number.. (for instance 1.2.x).. then
+	output a better message.
+*	Ctrl-B now toggles bookmarks (same as kwrite).
+*	Finally got the Parentesis Matching routine
+	to work with multilines in a way that satisfies me.
+
+14-aug-2004 Neoneye <neoneye@adslhome.dk>
+*	RubyLexer had problem recognizing the
+	defined? keyword.. because def had higher
+	precedens. Thanks Dmitry V. Sabanin.
+*	In case that fxruby cannot be loaded, then
+	a descriptive error message is now outputted.
+	Thanks ThreeDayMonk for reporting this.
+*	F3->repeat last search crashed.. Thanks Batsman.
+
+13-aug-2004 Neoneye <neoneye@adslhome.dk>
+*	Goto top/bottom of buffer.
+*	Goto line.
+*	Jump to matching parentesis (single line).
+
+12-aug-2004 Neoneye <neoneye@adslhome.dk>
+*	released version 1.5
+*	Figured out why I got Should Not Happen error.. it was because
+	session had an instance variable of the model.. when doing
+	set_memento_all then the views#model got updated, but not 
+	the session#model. Took some time to figure this out.
+*	Made a Memento::Range which takes snapshot of a range of
+	lines in the model... typical ~ 250 bytes for a one/two-line
+	memento snapshot.
+*	Reduced memory footprint of the remaining 12 operations,
+	by using the Memento::Range. It took surpricingly long time too.
+*	TUTORIAL document added.
+
+11-aug-2004 Neoneye <neoneye@adslhome.dk>
+*	PromptReplaceDialog now stays open.. it no longer moves to
+	a random location between each replacement. Feels better.
+	Thanks Batsman for reporting this.
+*	#change_cursor_y rejected positions outside the view, which
+	it was suppose to.. however this was not suitable for undoing
+	pageup/pagedown. I had to change it into #set_cursor_y which
+	operates with absolute values.
+*	finally figured out how to turn Replace and De-select into
+	commands that are undoable. Now all commands are undoable.
+*	Memento::All consumption of bytes depends linary on the
+	number of lines, roughly   bytes = 43.6*lines-1117
+*	Memento::Position consumes constantly 63 bytes.
+
+10-aug-2004 Neoneye <neoneye@adslhome.dk>
+*	Martin DeMello suggested that I did a $stdout.flush, so one could
+	tell if the configuration file had been succesfully loaded.
+*	we no longer only accepts monospaced fonts.. now variable
+	width fonts are usable.
+*	ThemeDialog has gotten a scrollbar, so all the content now can
+	be seen on a normal sized display.
+*	imported 'history.rb' and 'test_history.rb' from AEditor-0.12
+	and adapted it for this version.
+*	Bill Atkins found a nice default font which works both on Windows 
+	and UNIX. Earlier the default font were corny on windows.  Thanks.
+*	Buffer#create_memento + #set_memento which takes full snapshot
+	has been added.
+*	Turned these operations into commands which deals with undo/redo:
+	arrow_up, arrow_down, arrow_left, arrow_right, move_line_begin,
+	move_line_end, inserttext, backspace, breakline.
+*	We can now record and play macros  (which can be undoed/redoed).
+
+09-aug-2004 Neoneye <neoneye@adslhome.dk>
+*	released version 1.4 zip with VSCROLL_OPTIMIZATION = false
+	because blitting where source and destination are the same canvas,
+	doesn't work on Windows (it works on UNIX though).
+*	Talked with Lyle and got inspiration to a solution to above blitting
+	problem (temp_buffer).. got Florian Gross to test the solution.
+	It consumes more memory and blitting takes twice as much time,
+	too bad it has to be this way.
+
+08-aug-2004 Neoneye <neoneye@adslhome.dk>
+*	released version 1.4 tgz with VSCROLL_OPTIMIZATION = true 
+*	the vscroll_callback is now being installed whenever one is
+	switching buffer.
+*	#set_scroll_y bailed out too early, so that #scroll_to_cursor
+	sometimes couldn't do its job... ultimatly causing a crash.
+*	#breakline didn't invoke #reload_lines when the vscroll_callback
+	was installed, causing empty lines if one tries pressed enter
+	at the bottom most line.
+*	I saw the scary statistics of objects when I open 16 files:
+	total number of objects    = 481867
+	Array                      = 187210 
+	String                     = 164445    (1204103 total letters)
+	Bignum                     =  74888
+	Float                      =  31906
+	MatchData                  =   9566 
+	Buffer::Model::Line        =   7410 
+	Iterator::Collection       =   1686 
+	Buffer::View::Line::Normal =   1534 
+	Buffer::View::Line::Empty  =    833 
+	Time                       =    829 
+	Proc                       =    373
+	Regexp                     =     98 
+	Fox::FXDCWindow            =     54
+	I must see if I can reduce these numbers, no wonder that
+	collecting garbage takes long time.
+*	the View#output_cells now gets a certain end-of-line state from
+	the lexer, which it uses to pad the endofline with.
+
+07-aug-2004 Neoneye <neoneye@adslhome.dk>
+*	#scroll_to_cursor now invokes #set_scroll_y, so that it can
+	use the vscroll_callback for faster rendering.
+*	#scroll_to_center now makes use of #set_scroll_y.
+*	#breakline_internal, #joinline now interacts with 
+	the #vscroll_callback.. so its no longer painful to hit enter
+	nor backspace. Before these operations could take 
+	between 0.1 and 0.2 seconds, now they both takes 0.05 secons max.
+*	The cursor can now be positioned by left-clicking with the mouse.
+
+06-aug-2004 Neoneye <neoneye@adslhome.dk>
+*	spended a great amount of time thinking about how to test
+	scrolling.. and finally it occured to me that I had forgotten
+	to do scrolling of the @lines_valid and @lines arrays.
+*	made lego models of how vertical scrolling occurs, and
+	got normal scrolling fairly working.. However in selection
+	mode + scrolling sometimes outputs garbage.
+*	scrollup marked one line more as dirty than it was supposed to.
+	the #set_scroll_y method invoked the #lcache_insert_line,
+	which inserted a 'nil' value into the @lexer_cache_states array.
+	Later on when #lcache_sync bumped into the 'nil' value it
+	propagated and flagged the next line as dirty. The solution 
+	was to insert a more appropriate value (than 'nil')
+	so that propagation didn't occur.
+*	pageup/pagedown in selection_mode now marks the lines between
+	the old cursor position and the new position as dirty.
+*	#change_cursor_y did not marked lines dirty if we were in
+	selection_mode, causing pageup/pagedown to behave weird when
+	reaching the top/bottom of the buffer.
+
+05-aug-2004 Neoneye <neoneye@adslhome.dk>
+*	both theme dialog and font dialog, didn't render the lines 
+	at all.
+*	preparations for scrolling.
+*	forgot to add a file with ruby's license.
+
+04-aug-2004 Neoneye <neoneye@adslhome.dk>
+*	released version 1.3 branch20040803 (unstable).
+*	Viewfox#dirty_lines and Buffer#render_valid has been added,
+	coursing a huge speed gain.
+	inserting a single letter, takes 0.0077 seconds.
+	breakline takes now a variable amount of time.. at the
+	top of the view it takes 0.15 seconds.. and at the 
+	bottom of the view it takes 0.02 seconds.
+	Yesterday these operations fairly constanly took 0.24 seconds.
+*	selections decorations are now applied within the #apply_lexer
+	method.. and only to dirty lines. Resulting in faster selections.
+*	I had a heisenbug in #render_dirty_areas where I was refering
+	to 'y', which wasn't defined in that method. 'y' was a accessor
+	of FXDialogBox..  At a point everything worked, then I took a
+	short nap and when I woke up things behaved odd.
+	No wonder.. now don't use 'y'.
+
+03-aug-2004 Neoneye <neoneye@adslhome.dk>
+*	viewfox no longer uses FXRGB for its color values, because
+	FXRGB is bignums and thus very slow. Instead I now use fixnums
+	which is way faster. Though just before rendering I must
+	do a conversion from fixnum to FXRGB.
+
+02-aug-2004 Neoneye <neoneye@adslhome.dk>
+*	today I have been benchmarking/profiling my lexer's
+	and figured out that I had a few wrong assumptions
+	about my old lexer, so that it appeared to be way
+	faster than it really are. I have decided to follow
+	another approach (see Lexer3), which so far is more
+	than twice as fast as the LexerOld.
+	benchmarking the lexers (computing 10000 lines with GC disabled)
+							  user     system      total        real
+	LexerRuby::LexerOld   5.170000   0.050000   5.220000 (  5.326750)
+	LexerRuby::LexerNew   3.450000   0.030000   3.480000 (  3.517836)
+	LexerRuby::Lexer3     2.270000   0.000000   2.270000 (  2.263172)
+	I have abandoned the design from yesterdays inspirering
+	talk with Allan Odgaards.. and now instead rely on String#scan.
+
+01-aug-2004 Neoneye <neoneye@adslhome.dk>
+*	experiments with a new lexer which theoretically should
+	be faster.. but which in practice are same speed.
+	What I really don't understand is why chosing a smaller
+	font affects lexing speed of a single line.. there is
+	still the same amount of letters to be processed.  Why?
+	Thanks Allan Odgaard for this idea.
+
+09-july-2004 Neoneye <neoneye@adslhome.dk>
+*	initial lexer caching are here.. only the line which
+	the user types in are being lexed. Lexing may propagate
+	to the following lines if necessary.
+*	breakline/joinline/scrollup/scrolldown no longer reset 
+	the lexer_cache, instead they just insert a dirty entry 
+	in the cache or removes a entry. For instance if the
+	user has 50 visible lines.. then we now only needs to
+	compute 2 of those lines as minimum. In the past I had
+	to compute all of those 50 lines.. so this is quite a
+	speed up.
+
+07-july-2004 Neoneye <neoneye@adslhome.dk>
+*	released version 1.3
+*	added a turbo pascal theme.
+*	#render_rows now fills the background behind the text
+	by using FXDC#fillRectangle.. There was some problems
+	with truetype fonts on windows, which resulted in
+	vertical lines. Hopefully its solved now.
+*	I had forgotten to update the model iterator when
+	performing swap upper/lower, so if one inserted text
+	after a swap.. then it got inserted on the wrong line.
+*	Martin DeMello was kind to help track down keyboard
+	event.state problem on windows. Thanks.
+*	released version 1.2
+*	Robert Klemmer, Pena Botp, Kaspar Schiess.. all helped
+	tracking down a recursion problem on windows.
+
+06-july-2004 Neoneye <neoneye@adslhome.dk>
+*	released version 1.1
+*	the font can now be changed, and is remembered in
+	the registry.
+*	generate an 'bin/editor.cmd' + an 'bin/editor' file,
+	thanks Christian Neukirchen for advise on batch files.
+*	collect version numbers from the packages editor
+	depends on: fox, fxruby, iterator, ruby.
+*	shebang line is now being changed at installation time,
+	accordingly to that ruby there was used for installation.
+*	ruby-lexer: can now recognize hex and octal.. and now
+	deal with underscores in name.
+*	ruby-lexer: can now recognize literals that begins/end
+	on the same line.. eg %w<abc def>  and %|a b c|.
+
+05-july-2004 Neoneye <neoneye@adslhome.dk>
+*	removed hardcoding of '/home/neoneye/.aeditor'.
+*	released version 1.0
+*	test_fileio.rb now undef's methods which exercises
+	unix behavier.
+
+04-july-2004 Neoneye <neoneye@adslhome.dk>
+*	statusbar now shows cursor_y+cursor_x+percentage.
+*	class for parsning commandline arguments added.
+*	added '--selftest' option which invokes 'test_all.rb'.
+*	copy/paste now interact with fxruby's drag'n'drop.
+*	pageup/pagedown are now working as they are suppose to.
+
+03-july-2004 Neoneye <neoneye@adslhome.dk>
+*	theme specified in the config file, now show up in the 
+	pulldown menu.. so you easily can switch between them.
+*	on startup the editor uses the same theme as there
+	was used last time, it was invoked.
+*	ruby-lexer now recognizes :symbol as symbols and
+	!"%&?=)(/& etc as punctuation.
+*	ruby-lexer now recognizes interpolated code within
+	double quoted strings, e.g. "text#{code}text"
+
+30-june-2004 Neoneye <neoneye@adslhome.dk>
+*	line-bookmarks added. F8=insert/remove bookmark.
+	F9=goto next bookmark. Whenever a line is inserted
+	or removed, then the bookmarks below are adjusted.
+*	fullscreen-mode <-> windowed-mode switch, now
+	shares the session between them (also the clipboard).
+*	now window spawn at the same place where it was
+	opened last time.
+*	ESCape now resets the selection.. (yesterday it
+	terminated the application).
+
+28-june-2004 Neoneye <neoneye@adslhome.dk>
+*	Session class has been added, which bind together
+	both Buffer, Lexer, Config.
+*	AEditor now reads ~/.aeditor on startup..
+	at the momemt only: tabsize, cursor_through_tabs,
+	lexer can be choosen this way. The mode can be
+	bound to a file-suffix.
+*	buffer-load now picks a lexer corresponding to
+	an existing mode with the matching file-suffix.
+*	file-save, spawns a saveas dialog in case the file
+	never has been saved before.
+*	file-saveas, now changes mode in case the 
+	new filename matches another mode-filesuffix.
+*	model crashed if it was opened with an empty file.
+*	left/right arrow decorations when there are buffer
+	text outside the view.
+
+27-june-2004 Neoneye <neoneye@adslhome.dk>
+*	View#replace has been implemented.
+
+26-june-2004 Neoneye <neoneye@adslhome.dk>
+*	View#search has been implemented.
+
+24-june-2004 Neoneye <neoneye@adslhome.dk>
+*	new buffer now creates an empty buffer.
+*	save(as) now make a backupfile, and in case of
+	failure it shows a dialogbox.
+*	close-buffer now spawns a dialogbox in case the
+	buffer-content are different from the file-content.
+
+23-june-2004 Neoneye <neoneye@adslhome.dk>
+*	View#lexer_sync added, so that multiline syntax coloring
+	are working.. it remembers state info for all lines above
+	the view.
+
+21-june-2004 Neoneye <neoneye@adslhome.dk>
+*	extralines at top/bottom has been added.
+*	cursor cannot move to Empty lines.
+
+19-june-2004 Neoneye <neoneye@adslhome.dk>
+*	whenever onKeypress are unable to deal with the event
+	it is now propagated to the parent widget (which is the
+	fxdialog.. which then propagates it to the menubar).
+*	dynamic menu which shows the currently open buffers.
+
+16-june-2004 Neoneye <neoneye@adslhome.dk>
+*	initial multibuffer.
+*	FileSaver class added, which carefully checks that 
+	permissions are correct.
+*	F3 -> switch to prev buffer.
+*	F4 -> switch to next buffer.
+*	I had forgotten to resize the view when switching to another 
+	buffer.. this made things behave weird. This has been fixed.
+*	show title of the current buffer as the window title.
+
+15-june-2004 Neoneye <neoneye@adslhome.dk>
+*	swap with upper/lower lines added.
+*	indent/unindent line/selection added.
+*	selections now deal better with tabs.

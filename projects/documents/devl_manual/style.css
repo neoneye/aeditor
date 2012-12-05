@@ -1,0 +1,26 @@
+body {
+	color: black;
+	background: #ccc;
+}
+h2.title {
+	font-family: Lucidatypewriter;
+	font-size: 24pt;
+	font-weight: bold;
+	margin-top: 2em;
+	padding-left: 1em;
+	border-right: medium solid rgb(255, 154, 51);
+	border-bottom: medium solid rgb(255, 154, 51);
+	background: rgb(255, 234, 100);
+	color: black;
+}
+div.section p {
+	text-align: justify;
+}
+p {
+	margin-left: 2em;
+	margin-right: 2em;
+}
+h3.title {
+	margin-left: 2em;
+	margin-right: 2em;
+}

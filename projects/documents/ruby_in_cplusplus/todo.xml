@@ -1,0 +1,1037 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<section><title>Embedding Concepts</title> 
+<para>Talking about concepts you will need to know if you plan 
+to do embedding.
+</para>
+
+<section><title>Init/Cleanup</title> 
+<para>
+In order to use &ruby;; We must as our first thing do proper initialization,
+and when done we perhaps want &ruby; to cleanup itself.
+</para>
+
+<para>The usual startup procedure:
+<orderedlist>
+<listitem><para>
+	<function>ruby_init</function>(); initializes the interpreter.
+	</para></listitem> 
+<listitem><para>
+	<function>ruby_init_loadpath</function>(); initializes the 
+	<varname>$:</varname> variable (<varname>$LOAD_PATH</varname>).
+	It will be initialized with the content of the <varname>RUBYLIB</varname>
+	unix-environment variable, plus the location of 
+	<emphasis>site_ruby</emphasis> and the current directory.
+	This path is searched whenever you invoke either 
+	<function>require</function> or <function>load</function>.
+	Therefore is <function>ruby_init_loadpath</function> very necessary 
+	if you plan to load some modules.
+	</para></listitem> 
+<listitem><para>
+	<function>ruby_script</function>(name); assigns the name of
+	this script to the <varname>$0</varname> variable. 
+	This can be useful if your script depends on your embedded 
+	application. 
+<programlisting><![CDATA[
+if $0 != "embed"
+    puts "WARNING: this script is supposed "\
+        "to be run only from 'embed'"
+end
+]]></programlisting>
+	Sometimes you will see this script name used in backtraces.
+	If you leave out <function>ruby_script</function> then the 
+	<varname>$0</varname> variable will be "false".
+	</para></listitem>
+</orderedlist>
+</para>
+
+<para>Less importance: There exist a couple of extra 
+initialization functions (<function>ruby_options</function>). 
+Is there others? 
+</para>
+
+<para>
+Defining our own environment:
+<orderedlist>
+<listitem><para>Making the &cpp; <classname>Redirect</classname> 
+	class visible to ruby. This is what &swig; can help us with, 
+	see [Combining Everything].
+	</para></listitem> 
+<listitem><para>Load the &ruby; script, which
+	defines a <classname>RubyView</classname> class which is 
+	inheirited from the afore-mentioned 
+	<classname>Redirect</classname> class.
+	</para></listitem> 
+<listitem><para>Create an instance in &cpp; of the 
+	<classname>RubyView</classname> class.</para></listitem> 
+</orderedlist>
+</para>
+
+<para>
+We are up running. Here is our typical activities:
+<orderedlist>
+<listitem><para>Wrap every <function>rb_funcall</function>() into
+	an <function>rb_protect</function>() so we ourselfes
+	can deal with exceptionhandling.</para></listitem> 
+<listitem><para>Once in a while do some garbage collection.
+	If we do GC frequently, then we can early detect memory bugs.
+	</para></listitem> 
+</orderedlist>
+</para>
+
+<para>
+Finaly teardown everything we build:
+<orderedlist>
+<listitem><para>Kill childprocesses.</para></listitem>
+<listitem><para><function>ruby_finalize</function>(); clean up
+	(garbage collection) and shutdown the interpreter.
+	</para></listitem>
+</orderedlist>
+</para>
+
+</section>
+
+
+<section><title>Stay Alive - Use Protection</title> 
+<warning><para>
+If an error occurs inside ruby without 
+being encapsulated inside a <function>rb_protect()</function>.
+Then ruby will call <function>exit()</function> which
+terminates your program.</para></warning>
+
+<warning><para>If hard errors occurs inside &ruby;, like segmentation fault,
+then a <errorcode>SIGABRT</errorcode> signal will be raised. You might 
+find it necessary to install your own signal handler for this
+[<ulink url="http://www.cs.cf.ac.uk/Dave/C/node24.html#SECTION002400000000000000000">deal with signals</ulink>]. I have done a little research about this
+which you can see in the [Combining Everything] section.
+<!-- rb_bug() issues an abort() --> 
+</para></warning>
+
+<para>So how can we secure us against this?</para>
+
+<funcsynopsis><funcprototype>
+	<funcdef>VALUE <function>rb_protect</function></funcdef>
+	<paramdef>VALUE <parameter>(*proc)</parameter><funcparams>VALUE</funcparams></paramdef>
+	<paramdef>VALUE <parameter>arg</parameter></paramdef>
+	<paramdef>int *<parameter>error</parameter></paramdef>
+</funcprototype></funcsynopsis>
+
+<!-- todo: what is the meaning with those parameters/returnvalue? -->
+<para>
+An example of such encapsulation could be
+following:</para>
+
+<programlisting><![CDATA[VALUE require_wrap(VALUE arg) {
+    return rb_require("test");
+}
+
+VALUE require_protect() {
+    int error;
+    VALUE result = rb_protect(
+        require_wrap, 0, &error);
+    if(error) 
+        throw;
+    return result;
+}
+]]></programlisting>
+
+<para>This will protect you from bad things:
+<itemizedlist>
+<listitem><para>You can catch if 
+	<function>abort</function>, <function>exit</function> or
+	<function>raise</function> occurs in the &ruby; 
+	script.</para></listitem>
+<listitem><para>If the &ruby; code is malformed.	
+	</para></listitem>
+<listitem><para>If the filename you had required cannot be
+	found.</para></listitem>
+</itemizedlist>
+</para>
+
+<para><varname>error</varname> tells us if it were succesfully. 
+Next section I will discuss
+how to deal with failures.</para>
+
+</section>
+
+<section><title>Exception Handling</title> 
+<para>The <varname>error</varname> value returned from 
+<function>rb_protect</function>, is zero if everything is OK. 
+Otherwise there is something wrong which needs to be dealed with!
+</para>
+
+<para>
+The following code will translate &ruby;-exceptions into &cpp;exceptions.
+<programlisting><![CDATA[
+void ThrowOnError(int error) {
+    if(error == 0)
+        return;
+
+    VALUE lasterr = rb_gv_get("$!");
+
+    // class
+    VALUE klass = rb_class_path(CLASS_OF(lasterr));
+    clog << "class = " << RSTRING(klass)->ptr << endl; 
+
+    // message
+    VALUE message = rb_obj_as_string(lasterr);
+    clog << "message = " << RSTRING(message)->ptr << endl;
+
+    // backtrace
+    if(!NIL_P(ruby_errinfo)) {
+        std::ostringstream o;
+        VALUE ary = rb_funcall(
+            ruby_errinfo, rb_intern("backtrace"), 0);
+        int c;
+        for (c=0; c<RARRAY(ary)->len; c++) {
+            o << "\tfrom " << 
+                RSTRING(RARRAY(ary)->ptr[c])->ptr << 
+                "\n";
+        }
+        clog << "backtrace = " << o.str() << endl;
+    }
+    throw runtime_error("ruby_error");
+}
+]]></programlisting>
+
+</para>
+
+<para>The other way around, translating &cpp;exceptions into 
+&ruby;-exceptions is also possible
+[<ulink url="http://groups.google.com/groups?hl=en&amp;lr=&amp;ie=UTF-8&amp;selm=20020408192019.E15413%40atdesk.com&amp;rnum=10">discussion</ulink>]. 
+Do you want backtraces?
+[<ulink url="http://www.gnu.org/manual/glibc-2.2.3/html_chapter/libc_33.html">unix</ulink>, 
+<ulink url="http://www.codeproject.com/useritems/stackdumper.asp">
+windows</ulink>].
+
+<programlisting><![CDATA[
+#define RUBY_TRY \
+    extern VALUE ruby_errinfo; \
+    ruby_errinfo = Qnil; \
+    try
+
+#define RUBY_CATCH \
+    catch(const std::exception &e) { \
+        std::ostringstream o; \
+        o << "c++error: " << e.what(); \
+        ruby_errinfo = rb_exc_new2( \
+            rb_eRuntimeError, o.str().c_str()); \
+    } catch(...) { \
+        ruby_errinfo = rb_exc_new2( \
+            rb_eRuntimeError, "c++error: Unknown error"); \
+    } \
+    if(!NIL_P(ruby_errinfo)) { \
+        rb_exc_raise(ruby_errinfo); \
+    }
+]]></programlisting>
+
+</para>
+</section>
+
+<section><title>Memory management</title> 
+<!--
+todo:
+
+  1) A more detailed explanation of THE GC interaction would be good. I'
+  not sure if you need to do both marking and rb_global_variable and/or
+  rb_gc_register_address. If I call rb_ary_new2 in my C code should I
+  always inform the GC? I understand that I need to use a mark function
+  for wrapped c classes but where do I get the VALUE from to pass to the
+  mark function?
+  If I am marking and object correctly what do I do when I want to free
+  it off - just stop marking? The example given under 'speed issues'
+  protects the object list (using rb_gc_register_address) but what do I
+  do if I want to free of just some of the objects in the list?. Also,
+  what happend if the GC runs between 		objects = rb_ary_new() and
+  rb_gc_register_address(&objects); ? Or can this never happen.
+-->
+<para>
+Many answers regarding memory management can be found here 
+[<ulink url="http://www.rubygarden.org/ruby?GCAndMemoryManagement">GC + MM</ulink>].
+</para>
+
+<para>&ruby; uses a garbage collection technique called
+<emphasis>mark-and-sweep</emphasis>, see 
+[<ulink url="http://www.rubygarden.org/ruby?GCAndExtensions">RubyGarden</ulink>, 
+<ulink url="http://oss.software.ibm.com/icu/docs/papers/cpp_report/an_introduction_to_garbage_collection_part_ii.html">
+	IBM</ulink>, 
+<ulink url="http://www.iecc.com/gclist/GC-algorithms.html#Mark-and-sweep">
+	GC-FAQ</ulink>].
+</para>
+
+<figure><title>Sometimes death needs to clean up</title>
+<graphic fileref="cleanup.png" /></figure>
+
+<para>
+If you are holding &ruby; instances within &cpp;, you must
+tell &ruby;s garbage collector, that you are busy using them. 
+Otherwise GC will destroy them, because they seems to be 
+<emphasis>unused</emphasis>!
+</para>
+
+<para>There is 2 ways to tell GC that a variable is busy.
+You can either choose to <emphasis>export</emphasis> 
+or <emphasis>not to export</emphasis> your variable.
+</para>
+
+
+<section><title>Exported variables</title> 
+<para>
+Variables which has names and which is fully shared between
+&cpp; and &ruby;. 
+</para>
+
+<para>Well covered in 
+[<ulink url="http://dev.rubycentral.com/book/ext_ruby.html">Programming Ruby/Extending</ulink>]. 
+Especialy take a look at the following functions:
+</para>
+
+<itemizedlist>
+<listitem><para>
+	<function>rb_define_variable</function>(name, object)
+	</para></listitem>
+<listitem><para>
+	<function>rb_define_class_variable</function>(class, name, object)
+	</para></listitem> 
+</itemizedlist>
+</section>
+
+<section><title>Non-exported variables</title> 
+<para>Unnamed variables which is being managed by &ruby;. 
+They cannot be accessed from <filename>.rb</filename> files, 
+because they are nameless (thus non-exported).
+</para>
+
+<para><function>rb_gc_register_address</function>(VALUE *var)
+Tells &ruby; that we want to use <varname>var</varname>,
+by adding the variable to the list of busy objects.
+Objects contained in the busy list will get marked
+during GC and is therefore spared from mass destruction.
+The <function>rb_global_vaiable</function> function is an alias.
+</para>
+
+<para><function>rb_gc_unregister_address</function>(VALUE *var)
+Tells &ruby; that <varname>var</varname> is no longer 
+in usage, by removing the variable from the list of busy objects. 
+Later at some point we <emphasis>can</emphasis> start GC.
+When GC is done with its mark-phase, this variable will be left
+<emphasis>unmarked</emphasis>. Finaly during GC's sweep-phase, 
+this variable and its <emphasis>unmarked</emphasis> childrend 
+will get destroyed.
+</para>
+
+<note><title>Speed issues</title>
+<para>
+The <function>rb_gc_register_address</function> function is calling
+<function>ALLOC</function> every time and is thus
+very slow. 
+<!--
+If you don't believe me, then see it for yourself
+	1 rb_global_variable() 
+	2 rb_gc_register_address() 
+	3 ALLOC()  ### slowdown!!!
+--> Lucky us we have a faster alternative:
+keeping track of all our objects in an array (or hash).
+This reduces the number of allocations, which give us speed.
+</para>
+<programlisting><![CDATA[
+class Objects {
+private:
+    VALUE objects;
+public:
+    Objects() {
+        objects = rb_ary_new();
+        rb_gc_register_address(&objects);
+    }
+    ~Objects() {
+        // dispose array and flush all elements
+        rb_gc_unregister_address(&objects);
+        /*      
+        mass destruction. GC can no longer
+        mark the elements in the Array and 
+        therefore they will all get swept.
+        */
+    }
+    void Register(VALUE object) {
+        rb_ary_push(objects, object);
+    }
+    void Unregister(VALUE object) {
+        rb_ary_delete(objects, object);
+    }
+};
+]]></programlisting>
+<para>
+Speed is the only difference in behavier, between <function>Register</function>
+and <function>rb_gc_register_address</function>.
+<!-- todo: the argument differs - reference/value -->
+</para>
+<para><classname>Array</classname>.<function>delete</function> is slow
+(linear time) compared to 
+<classname>Hash</classname>.<function>delete</function> (constant time).
+Having many elements, then a <classname>Hash</classname> <emphasis>can</emphasis> 
+give you better performance.
+Both <application>VIM</application> and <application>mod_ruby</application> 
+uses hashes.
+</para>
+</note>
+
+<para>Besides globals there exist <emphasis>locals</emphasis>. 
+Here is an example:
+</para>
+
+<figure><title>Assist GC during the mark phase</title>
+<graphic fileref="mark.png" /></figure>
+
+<para>Comments to this class diagram:
+<itemizedlist>
+<listitem><para>The <classname>Zoo</classname> class owns one 
+	instance of <classname>Cats</classname>. The <classname>Cats</classname>
+	class owns one instance of <classname>Puma</classname>.
+	</para></listitem>
+<listitem><para>The <classname>Cats</classname> class is &cpp; code.
+	The other classes is &ruby; code.
+	</para></listitem>
+<listitem><para>This is not an example of <emphasis>embedding</emphasis>!
+	</para></listitem>
+</itemizedlist>
+</para>
+
+<para>Because <classname>Cats</classname> is owned by the &ruby; class 
+(<classname>Zoo</classname>), we say that <classname>Cats</classname> 
+is <emphasis>managed</emphasis> by &ruby;. Its &ruby; who fully controls 
+when to do creation/destruction. 
+</para>
+
+<para>
+The <function>mark</function> function must be supplyed
+during initialization of <classname>Cats</classname>. 
+</para>
+<programlisting><![CDATA[
+VALUE cats_alloc(VALUE klass) {
+    return Data_Wrap_Struct(
+        klass, 
+        cats_mark, 
+        cats_free, 
+        new Cats()
+    );
+}
+]]></programlisting>
+<para><function>rb_gc_mark</function>() tells &ruby; which objects 
+who is active. Finaly &ruby; will destroy all non-active objects. 
+</para>
+
+<para>Here is a brief text
+[<ulink url="http://www.rubydoc.org/book/c1231.htm">RubyDoc</ulink>],
+on usage of <function>Data_Wrap_Struct</function>.
+</para>
+
+</section>
+
+<section><title>Destruction</title> 
+<!--
+todo:
+
+> 2) An example explaining finializers would be nice - still not sure if
+> I need them. Since I'm probably what Matz would describe as a 'normal'
+> user perhaps I should stear clear!.
+
+Maybe I should make it more clear, that I will not talk about 
+finalizers. And that you instead should use "close" + blocks.
+-->
+<warning><para>Watch out about your destructors, they will not necessarily
+get invoked when you object goes out of scope. Your objects will
+get destroyed when GC kicks in.</para></warning>
+<para>This has several consequences:
+<itemizedlist>
+<listitem><para>Avoid reference counting. Destructors which unref the
+	object will not work correct, because of the possible delayed 
+	destruction.</para></listitem>
+</itemizedlist>
+</para>
+
+<para>Instead of having a <function>dtor</function>, consider 
+using a <function>close</function> function, see 
+[<ulink url="http://groups.google.com/groups?hl=en&amp;lr=&amp;ie=UTF-8&amp;threadm=20010907124608.A11427%40acc.umu.se&amp;rnum=30&amp;prev=/groups%3Fq%3Druby%2Bgarbage%2Bcollection%26hl%3Den%26lr%3D%26ie%3DUTF-8%26start%3D20%26sa%3DN">dtors-discussion</ulink>,
+<ulink url="http://groups.google.com/groups?dq=&amp;hl=en&amp;lr=&amp;ie=UTF-8&amp;selm=m2wux3bys2.fsf%40skaro.access.one.net&amp;rnum=27">
+&cpp; &ruby; comparison</ulink>].
+</para>
+
+<para>Consider in your <function>dtor</function> to output a warning,
+if no invokation of the <function>close</function> function had happened.
+</para>
+
+<para>Remaining questions:
+<itemizedlist>
+<listitem><para>How to compensate for this dtor-delay?
+	[<ulink url="http://groups.google.com/groups?hl=en&amp;lr=&amp;ie=UTF-8&amp;threadm=t9b2ta3rnr6if2%40corp.supernews.com&amp;rnum=4&amp;prev=/groups%3Fq%3Druby%2Bgarbage%2Bcollected%26hl%3Den%26lr%3D%26ie%3DUTF-8%26sa%3DN%26tab%3Dwg">dtor-suggestions</ulink>].
+	</para></listitem> 
+<listitem><para>Are finalizers able to help us?
+	[<ulink url="http://www.rubygarden.org/ruby?DiscussionOnUsingFinalizers">finalizers</ulink>].
+	</para></listitem>
+</itemizedlist>
+</para>
+</section>
+
+<section><title>Questions + answers</title> 
+<qandaset>
+<qandaentry><question><para>What do I do when I want to free something
+	- just stop marking?</para></question>
+	<answer><para>Yes, exactly. You either have to issue that 
+	<function>unregister</function> function which matches the one 
+	you used for declaring the variable. Or you have to stop invoking
+	<function>rb_gc_mark</function>.</para></answer></qandaentry>
+<qandaentry><question><para>What happens if GC runs between [objects = rb_ary_new()] 
+	and rb_gc_register_address(&amp;objects); ? 
+	Or can this never happen?</para></question>
+	<answer><para>Yes, AFAIK this can happen, but only in special cases (TODO
+	which cases?). And No, you are in control of when GC should run.
+	</para></answer></qandaentry>
+</qandaset>
+
+<para>My question to you.. can I improve this section?
+</para>
+
+</section>
+</section>
+
+<!--
+todo:
+maybee a section on load/require/eval
+
+> 3) rb_require over rb_load_protect - I started off using rb_require
+> but then found that if rb_require fails with a script error and I then
+> corrected the script re re-rb_requiring ignored the changes - I assume
+> the script is cached. Switching to rb_load_protect reloads the script
+> each time - but is this correct?
+
+The reason why I am using rb_require is that I don't
+needs to re-load scripts.. I just load them during
+initialization, once and for all.
+-->
+
+<section><title>Multi-Threading</title> 
+<!--
+http://groups.google.com/groups?hl=en&lr=&ie=UTF-8&threadm=PYE27.78489%24AM.2163512%40e420r-sjo3.usenetserver.com&rnum=5&prev=/groups%3Fq%3Drb_thread_create%26hl%3Den%26lr%3D%26ie%3DISO-8859-1
+-->
+<warning><para><function>Thread.start</function> does not work.
+When your &ruby; function which started the thread, returns
+back to &cpp;, the ruby thread pauses until you enter
+&ruby; again. (actually I dont know if it restarts, but im guessing).
+</para></warning>
+<para>If you want &ruby; to spawn multiple threads, you
+will need to do a fork from the main-thread. In this
+forked process you can use <function>Thread</function> as
+much as you want.
+</para>
+<para>This code illustrates the <filename>ruby-1.8.0/sample/observ.rb</filename>
+being spawned in another process.
+</para>
+<programlisting><![CDATA[
+fork do
+    clock = Clock.new(Tick.new)
+    sleep
+end
+]]></programlisting>
+<para>Forked processes will continue to run when your 
+program terminates, unless you kill them. The following
+code will kill those zombies!
+</para>
+<programlisting><![CDATA[
+pid = fork do
+    clock = Clock.new(Tick.new)
+    sleep
+end
+sleep 5.00
+system("kill #{pid}")
+]]></programlisting>
+<para>I dont know if there is a smarter way to kill it?
+</para>
+<para>See [<ulink url="http://modruby.net/#label%3A11">mod_ruby</ulink>] for
+a working example.</para>
+</section>
+
+<section><title>Capture Output From Ruby</title> 
+<para>Redirecting &ruby;s output to a logfile can be very useful.
+Perhaps you want &ruby; to stay silent and not interfere 
+with the console output of your application!
+Completely encapsulated with a behaviour like
+an <classname>iostream</classname> as we know it from &cpp; 
+would be nice. Is this possible?  Yes!
+</para>
+
+<para>All &ruby;s output functions (<function>puts</function>, <function>p</function>,
+<function>print</function>, <function>printf</function>)  
+pass their output through the 
+<classname>IO</classname>.<function>write</function>(text) function. 
+By overloading this function we can gain full control of &ruby;s output.
+</para>
+
+<programlisting><![CDATA[
+class CaptureOutput < IO
+    def initialize
+        super(2)  
+    end
+    def write(text)
+        # send text to logfile
+    end
+end
+]]></programlisting>
+
+<para>todo: Im confused about initialization of the <classname>IO</classname> 
+class ('2' is stderr). I don't know the "right way" to do it... yet. 
+</para>
+
+<para>How is this <classname>CaptureOutput</classname> class suppose to be used.
+Well.. a &ruby; example could look like this:
+</para>
+
+<programlisting><![CDATA[
+def capture
+    raise unless block_given?
+    dout, serr, sout = $defout, $stderr, $stdout
+    buf = CaptureOutput.new
+    begin
+        $defout = buf
+        $stderr = buf
+        $stdout = buf
+        yield
+    ensure
+        $defout, $stderr, $stdout = dout, serr, sout
+    end
+end
+
+capture {
+    print "42"
+}
+]]></programlisting>
+
+<para>todo: I have some trouble capturing output from the 
+<function>system</function> call. 
+It seems to be non-trivial to do IO with child processes?
+</para>
+
+<para>todo: Im searching for resources 
+[<ulink url="http://groups.google.com/groups?hl=en&amp;lr=&amp;ie=UTF-8&amp;threadm=pan.2003.05.07.09.44.41.994394%40sneakemail.com&amp;rnum=1&amp;prev=/groups%3Fhl%3Den%26lr%3D%26ie%3DISO-8859-1%26q%3Druby%2Boutput">Capture Output</ulink>,
+<ulink url="http://groups.google.com/groups?hl=en&amp;lr=&amp;ie=UTF-8&amp;threadm=pan.2003.05.09.12.47.54.571376%40sneakemail.com&amp;rnum=3&amp;prev=/groups%3Fhl%3Den%26lr%3D%26ie%3DISO-8859-1%26q%3Druby%2Bextern">More Capture</ulink>,
+<ulink url="http://groups.google.com/groups?hl=en&amp;lr=&amp;ie=UTF-8&amp;threadm=aipksi%24mpq%241%40newsg2.svr.pol.co.uk&amp;rnum=1&amp;prev=/groups%3Fq%3Druby%2Bstdout%26hl%3Den%26lr%3D%26ie%3DISO-8859-1">talk</ulink>,
+<ulink url="http://groups.google.com/groups?hl=en&amp;lr=&amp;ie=UTF-8&amp;threadm=20030405115931.GB11956%40uk.tiscali.com&amp;rnum=2&amp;prev=/groups%3Fq%3Druby%2Bstdout%26hl%3Den%26lr%3D%26ie%3DISO-8859-1">
+overloading all output methods</ulink>,
+<ulink url="http://groups.google.com/groups?hl=en&amp;lr=&amp;ie=UTF-8&amp;threadm=Pine.GSO.4.33.0109202113580.6251-100000%40pjakkur.iar.se&amp;rnum=3&amp;prev=/groups%3Fq%3Druby%2Bstdout%26hl%3Den%26lr%3D%26ie%3DISO-8859-1">
+more overloading</ulink>,
+<ulink url="http://groups.google.com/groups?hl=en&amp;lr=&amp;ie=UTF-8&amp;threadm=etoadkay57m.fsf%40narsil.emschwar&amp;rnum=6&amp;prev=/groups%3Fq%3Druby%2Bstdout%26hl%3Den%26lr%3D%26ie%3DISO-8859-1">
+more</ulink>].
+</para>
+<para>Of course this concept has to be tweeked a bit before its really
+usable. todo: im working on this :-) 
+</para>
+</section>
+
+<section><title>Hints</title> 
+<para>Useful hints, what to do, and not to do.
+</para>
+<itemizedlist>
+<listitem><para>NOT use <function>ruby_run</function>() it
+	calls exit() and does not return to your program. 
+	</para></listitem>
+<listitem><para>always encapsulate your ruby code in a
+	<function>rb_protect</function>() wrapper.
+	</para></listitem>
+<listitem><para>frequent execution of GC can early reveal problems.
+	</para></listitem>
+<listitem><para>multithreading then use <function>fork</function>.
+	remember to kill zombies afterwards.
+	</para></listitem>
+</itemizedlist>
+</section>
+
+
+<section><title>Resources</title> 
+<para>
+Getting started in a rush?  My best advice
+is to look at the &ruby; source itself, plus seek inspiration in
+projects which successfully has embedded &ruby;.</para>
+<informaltable frame="all">
+<tgroup cols="2">
+<colspec colname='c1'/>
+<colspec colname='c2'/>
+	<thead><row><entry namest="c1" nameend="c2">Primary</entry></row></thead>
+	<tbody><row>
+		<entry><ulink url="http://dev.rubycentral.com/book/ext_ruby.html">
+			The Pragmatic Programmer's Guide - Extending Ruby</ulink></entry>
+		<entry>Long tutorial on how to combine C and Ruby. Basic concepts,
+			sharing data, wrapping structures, extconf.rb usage, embedding,
+			the &ruby; API.</entry>
+	</row><row>
+		<entry><ulink url="http://www.ruby-lang.org/en/download.html">
+			The Ruby Interpreter</ulink></entry>
+		<entry><filename>README.EXT</filename> descripes how to make your
+			own extensions.
+			most of the interesting functions is implemented in 
+			<filename>eval.c</filename> (rb_protect, backtrace, rb_funcall).</entry>
+	</row><row>
+		<entry><ulink url="http://www.vim.org/download.php">
+			VIM (VI iMporved)</ulink></entry>
+		<entry><filename>if_ruby.c</filename> reveals how &ruby;
+			has been embedded into VIM. This is a nice implementation
+			which is easy to grasp.</entry>
+	</row><row>
+		<entry><ulink url="http://homepage1.nifty.com/susho/software/gimp/ruby.html">
+			gimp-ruby</ulink></entry>
+		<entry>gimp plugin which embeds &ruby;. See <filename>embed/rubymod.c</filename> 
+			for a fairly good implementation. Watch out this software is GPL.</entry>
+	</row><row>
+		<entry><ulink url="http://modruby.net/#label%3A11">mod_ruby</ulink></entry>
+		<entry>apache plugin which embeds &ruby;. This is a bit complicated,
+			Thus you must take a look at VIM before looking at this.
+			Supports different levels of safety.</entry>
+	</row><row>
+		<entry><ulink url="http://www.swig.org/">SWIG (Simplified Wrapper and Interface Generator)</ulink></entry>
+		<entry>If you have a c/&cpp; library which you wanna use in a
+			scripting language(ruby, python..) then &swig; will create
+			the necessary wrapper almost automaticaly.</entry>
+	</row></tbody>
+</tgroup>
+</informaltable>
+
+<para>Projects which is less educational (secondary).
+</para>
+<informaltable frame="all">
+<tgroup cols="2">
+<colspec colname='c1'/>
+<colspec colname='c2'/>
+	<thead><row><entry namest="c1" nameend="c2">Secondary</entry></row></thead>
+	<tbody><row>
+		<entry><ulink url="http://rubyxx.sourceforge.jp/index.en.html">ruby++</ulink></entry>
+		<entry>A nice &cpp; wrapper around &ruby;. Its pretty educational to 
+			see how things is done behind the scene.</entry>
+	</row><row>
+		<entry><ulink url="http://exerb.sourceforge.jp/index.en.html">exerb</ulink> [windows]</entry>
+		<entry>Bundles your &ruby; code with the &ruby; interpreter into a 
+			single windows <filename>.EXE</filename> file.
+			Compression is possible.
+			<filename>exerb.cpp</filename> is the interesting part here,
+			how to do setup, execute, teardown.</entry>
+	</row></tbody>
+</tgroup>
+</informaltable>
+<para>If you can recommend other resources about <emphasis>embedding</emphasis> 
+I would be glad to add it.</para>
+</section>
+
+</section>
+
+<section><title>Combining Everything</title> 
+<para>Problem: The source code for the <classname>Redirect</classname> class 
+quickly becomes messy and confusing to maintain. Solution: relax with &swig;.
+</para>
+
+<para>I have made a skeleton project 
+[<ulink url="http://rubyforge.org/download.php/84/rubyembed-0.2.tar.gz"><filename>rubyembed-0.2.tar.gz</filename></ulink>]
+which you can use for free!
+Its almost the same code as we know it from [Simple Wrapper],
+here its just splitted up into several files. I must admit that
+this looks overwhelming for so little functionality, but hey -
+we are now holding tremendous power in our hands.
+</para>
+
+<para>Comments on the <filename>tar.gz</filename> file:
+</para>
+<itemizedlist>
+<listitem><para>Its scalable. You can easily add new classes &amp;
+	functions. This is actual the main purpose of this project.
+	</para></listitem>
+<listitem><para>Its easy. See <filename>redirect.cpp</filename> on 
+	how things works with &amp; without &swig;. Imagine that you
+	should add some functions, rename stuff.
+	Without &swig; you would have to write a bunch of code.
+	&swig; can automaticly create our necessary code,
+	so with &swig; you don't have to write anything :-)
+	</para></listitem> 
+<listitem><para>Its hidden. In <filename>library.h</filename> observe 
+	that <filename>ruby.h</filename> is not included and thus not poluting
+	your namespace. How did I manage to hide &ruby; completely?
+	Well, I used the <emphasis>pimpl</emphasis> idiom 
+	[<ulink url="http://www.gotw.ca/gotw/028.htm">gotw</ulink>].
+	</para></listitem>
+</itemizedlist>
+
+<para><citetitle>Don't Use Wizard Code You Don't Understand</citetitle> 
+[<ulink url="http://www.pragmaticprogrammer.com/ppbook/extracts/wizards.html">wizards?</ulink>]. 
+There is a few gotcha's in the code, 
+so I have some explaining to do. 
+Lets have a look.
+</para>
+
+<section><title>Cheating = Success</title> 
+<para>I think usage of global variables is nasty, but thats just me.
+In order to create an instance of <classname>RubyView</classname>, we
+must use such dirty tricks.
+</para>
+
+<programlisting><![CDATA[
+Impl(View *parent) : parent(parent) {
+    // create instance
+    Redirect::SetView(parent);
+    self = RUBY_CPP::New("RubyView");
+
+    // tell GC
+    objects->Register(self);
+}
+]]></programlisting>
+
+<para>Creating an instance. How is this code working?
+</para>
+
+<figure><title>Transfering arguments (dirty)</title>
+<graphic fileref="bootswig.png" /></figure>
+
+<para>
+In an perfect world, we would have passed the 
+<varname>parent</varname> variable to 
+<function>RubyView.new</function> which then would
+pass it further to <function>Redirect.ctor</function>.
+But the world is unfortunatly <emphasis>not perfect</emphasis> and
+therefore its sometimes necessary to use global variables.
+</para>
+
+<para>Why is it necessary to transfer arguments 
+in such ackward way?  todo: 
+</para>
+</section>
+
+
+<section><title>Minor Issues</title> 
+<para>Less importance but nice to know.
+</para>
+
+<itemizedlist>
+<!-- solved [15-april-2003], this is a SWIG 3.1.19 problem.
+<listitem><para>
+	Observe that <filename>test.rb</filename> does not inheirit from
+	<classname>Redirect</classname> as in the [simple wrapper].
+	Also observe that there instead is created a local instance 
+	in order to get almost same behaiver (requires silly extra code).
+	This is because &swig; does'nt like inheitance. Attempting to
+	inheirit result in this error message:
+<screen><![CDATA[EXCEPTION (RUBY):
+name=cannot invoke ruby-function
+where=./test.rb:21
+class=TypeError
+message=wrong argument type RubyView (expected Data)
+backtrace=      from ./test.rb:21:in `repaint'
+        from ./test.rb:21:in `insert'
+]]></screen>                                
+	Im working on a workaround for this... idealistic we want 
+	<classname>RubyView</classname> to inheirit from 
+	<classname>Redirect</classname>. 
+	Can you help me solving this ?
+	</para></listitem> -->
+
+<listitem><para>
+	Observe that in the <filename>redirect.h</filename> file,
+	there is not used namespaces. Why?
+	This is because we don't want to make it too hard getting &swig;'s 
+	wrapper (<filename>redirect_wrap.cpp</filename>) to play with 
+	<filename>redirect.h</filename>. 
+	Im just assuming that this could result in problems,
+	I havn't tried using that namespace.
+	</para></listitem>
+
+<listitem><para>
+	I want to illustrate that its possible to either use &swig;
+	or to do everything manualy. For this purpose I have introduced
+	the <varname>EMBEDRUBY_SWIG</varname> define. 
+	Its only used a few places and should be easy to remove :-)
+	</para>
+<screen><![CDATA[> grep EMBEDRUBY_SWIG *
+Makefile.am:test_CXXFLAGS = -DEMBEDRUBY_SWIG=0
+Makefile.am:testswig_CXXFLAGS = -DEMBEDRUBY_SWIG=1
+library.cpp:#ifdef EMBEDRUBY_SWIG
+library.cpp:    const bool use_swig = EMBEDRUBY_SWIG;
+redirect.cpp:#if EMBEDRUBY_SWIG != 0
+>
+]]></screen>
+	</listitem>
+
+<listitem><para>
+	I don't like having signal handling in the 
+	<filename>main.cpp</filename> file. This thing was supposed 
+	to be encapsulated in the library. Maybe I will make an attempt 
+	to fix it someday.
+	</para>
+	<para>
+	I could'nt resist; I have made a <emphasis>SIGABRT 2 exception</emphasis> 
+	wrapper, see 
+	[<ulink url="http://cvs.sourceforge.net/cgi-bin/viewcvs.cgi/metaeditor/experiments/cpp_embed_ruby/test/embed_swig/source/library.cpp?only_with_tag=signals">signals_branch</ulink>]. 
+	Its a nice hack which uses 
+	<function>setjmp</function>/<function>longjmp</function>.
+	Still I need to fix few issues before its really usable.
+	todo: On SIGABRT we want a coredump and then continue execution?
+	todo: redirect to other SIGABRT handlers if this is possible?
+	</para></listitem>
+
+<listitem><para>
+	In the <filename>test.rb</filename> file you can see a place saying
+	<classname>Embed::Redirect</classname>. This <emphasis>Embed</emphasis>
+	module annoyes me (cosmetic detail) and I would like get rid of it.
+	Observe that &swig; encapsulates the <classname>Redirect</classname>
+	class in a module, named <emphasis>Embed</emphasis>. I hav'nt yet decided
+	with myself whether or not this is good or bad (I think its most bad).
+	&swig; generates a initialization function named 
+	<function>Init_</function><replaceable>%module</replaceable>().
+	Imagine that you have many of these initialization functions, each
+	with its own module-name. 
+	Problem: In the &ruby; code this results in many module names.
+	</para>
+	<para>
+	I must find out if &swig; has an option for disabling this
+	module-namespace thing. I asked this question 
+	[<ulink url="http://groups.google.com/groups?hl=en&amp;lr=&amp;ie=UTF-8&amp;threadm=pan.2003.04.24.14.20.38.875272%40sneakemail.com&amp;rnum=1&amp;prev=/groups%3Fq%3Dsimon%2Bstrandgaard%2Blyle%26ie%3DISO-8859-1%26hl%3Den">avoiding 
+	the module name</ulink>] and I think Lyle is working
+	on adding this feature to &swig;.
+	</para></listitem>
+</itemizedlist>
+
+<!--
+todo: maybee section on how the inheitance is working..
+
+3) More detail for the swig version - especially for the case when a
+ruby class inherits a swigged up c class and you need to pass a
+swigged up c class instance throug to it and then back out again
+
+class MyClass < MyModule::SwigClass2
+	def initialize(swigClassValue)
+		super(swigClassValue)
+	end
+end
+-->
+</section>
+
+<section><title>What Now</title> 
+<para>You might want to extend/adjust this code further for 
+your own requirements. I will try to cover how to add new features.
+</para>
+
+<qandaset>
+<qandaentry><question><para>Adding a virtual function, how?</para></question>
+	<answer><para>First look at how the <function>repaint</function>()
+	function is done. You will need to add your 
+	<replaceable>new_function</replaceable>() to the 
+	<classname>Redirect</classname> class in both 
+	<filename>redirect.h</filename> and <filename>redirect.i</filename>.
+	</para></answer></qandaentry>
+<qandaentry><question><para>Adding a ruby-function, how?</para></question>
+	<answer><para>First look at how the <function>insert</function>()
+	function is done. 
+	You will need to add your <replaceable>new_function</replaceable>()  
+	to the <classname>RubyView</classname> class located in 
+	<filename>test.rb</filename>. 
+	Next you must add a function to the <classname>Impl</classname> 
+	class which wraps your call from &cpp; into &ruby;.
+	Finaly you must add a function-prototype to the
+	<classname>View</classname> class which just passes the 
+	call further to the <classname>Impl</classname> class. 
+	</para></answer></qandaentry>
+<qandaentry><question><para>Adding new classes?</para></question>
+	<answer><para>You may have observed that this code is only providing
+	a wormhole for the <classname>View</classname> class and that
+	<classname>Redirect</classname> is just a helper class.
+	It is spread out over several files: <filename>redirect.i</filename>,
+	<filename>redirect.h</filename>, <filename>redirect.cpp</filename>,
+	<filename>library.h</filename>, <filename>library.cpp</filename>.
+	</para><note><para>Can this huge number of files be reduced?
+	Yes, <filename>redirect.cpp</filename> can be joined  
+	with <filename>library.cpp</filename>.
+	If we consider using &swig; then the remaining files 
+	cannot be joined.</para></note>
+	<para>todo
+	</para></answer></qandaentry>
+</qandaset>
+</section>
+
+<section><title>Standing On The Shoulder Of Giants</title> 
+<para>Most people think that &swig; can be used ONLY for ruby extensions. 
+But if you are clever you can actual use it for embedding.
+</para>
+
+<figure><title>The C++ giant looks tired</title>
+<graphic fileref="giants.png" /></figure>
+
+<para>I hope you have made it this far without too many bumps on the road.
+Now enjoy life :-)
+</para>
+
+<para>Over and out - Simon Strandgaard.
+</para>
+</section>
+
+</section>
+
+<section><title>TODO</title> 
+<para>
+<simplelist type="horiz" columns="1">
+	<member>Debugging techniques - Can I stepBYstep debug this 
+		&cpp;/&ruby; code?  Breakpoints in the &ruby; code? 
+		How to use electricFence/Valgrind.</member>
+	<member>Backport ideas from the tar.gz file to the 
+		simple example.</member>
+	<member>Redirection of stderr, stdout.
+		An insecure sandbox, if people want to break loose they can. 
+		Pipe is a unix-thing, how to do on windows?
+		Move the "Capture Output From Ruby" section to appendix.
+		</member>
+	<member>How to frequent invoke GC?</member>
+	<member>Fill some more text on the "Combining Everything" Section.</member>
+	<member>load &ruby; DLL/SO-library only when needed.</member>
+	<member>Windows build issues (IMPORT NT=1). 
+		I have no makefile for windows yet.</member>
+	<member>SAFE, &ruby; has different levels of paranoia.</member>
+	<member>longjump issues if such exist? I think I read a posting
+		on this subject.</member>
+	<member>Do some more analysis on &ruby;s multithreading 
+		(<function>fork</function>). Maybe run the interpreter in its 
+		own process? How to kill zombie processes.</member>
+	<member>Integrating ruby into an existing multithreaded application.</member>
+	<member>benchmark section, measure responsiveness, memory usage.
+		discuss how to improve responsiveness.</member>
+	<member>unittest, we wanne be sure it really works.</member>
+</simplelist>
+If something is missing, not covered sufficiently ... Then mail me :-)
+</para>
+</section>
+
+<section><title>NEWS</title> 
+<variablelist>
+<varlistentry><term>30-august-2003</term>
+	<listitem><para>This document has been moved from sourceforge to
+	rubyforge.
+	</para></listitem></varlistentry>
+<varlistentry><term>27-april-2003</term>
+	<listitem><para>Rewrote/rearranged the [Overview] section.
+	I hesitated too much, found that extra parameter for 
+	<application>xsltproc</application> which enables CSS stylesheets!
+	</para></listitem></varlistentry>
+<varlistentry><term>17-april-2003</term>
+	<listitem><para>Version 0.2 is out 
+	[<ulink url="http://rubyforge.org/download.php/84/rubyembed-0.2.tar.gz"><filename>rubyembed-0.2.tar.gz</filename></ulink>,
+	<ulink url="http://cvs.sourceforge.net/cgi-bin/viewcvs.cgi/metaeditor/experiments/cpp_embed_ruby/test/embed_swig/ChangeLog?rev=1.1&amp;content-type=text/vnd.viewcvs-markup">
+	Changelog</ulink>].
+	</para></listitem></varlistentry>
+<varlistentry><term>15-april-2003</term>
+	<listitem><para>Inheiritance from a &swig; class is now possible!
+	Thanks to "Steve Hart" for pointing that out.
+	See the change here 
+	[<ulink url="http://cvs.sourceforge.net/cgi-bin/viewcvs.cgi/metaeditor/experiments/cpp_embed_ruby/test/embed_swig/source/rubycpp.cpp.diff?r1=1.3&amp;r2=1.4">diff 1.3/1.4</ulink>], 
+	still I would like to know what 
+	exactly the difference is?
+	I asked this question at the comp.lang.ruby, see 
+	[<ulink url="http://groups.google.com/groups?hl=en&amp;lr=&amp;ie=UTF-8&amp;threadm=pan.2003.04.15.11.55.50.67892%40sneakemail.com&amp;rnum=15&amp;prev=/groups%3Fq%3Druby%2Bsimon%2Bstrandgaard%26hl%3Den%26lr%3D%26ie%3DUTF-8%26start%3D10%26sa%3DN">question</ulink>] 
+	and I got lots of answers. 
+	Im looking forward to &swig; version 1.3.20
+	where this problem hopefully should have been fixed. Thanks &ruby; fellows.
+	</para></listitem></varlistentry>
+<varlistentry><term>04-april-2003</term>
+	<listitem><para>Version 0.1 is out 
+<!--	[<ulink url="rubyembed-0.1.tar.gz"><filename>rubyembed-0.1.tar.gz</filename></ulink>] -->.
+	</para></listitem></varlistentry>
+</variablelist>
+</section>

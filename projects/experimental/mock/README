@@ -1,0 +1,211 @@
+***************************************************************
+*                      Important!                             *
+*                                                             *
+*   This is an import of Test-Unit-Mock by Michael Granger,   *
+*   it has been modified for usage in AEditor.                *
+*                                                             *
+***************************************************************
+
+
+= Test-Unit-Mock: A mock-object class for Test::Unit
+
+== Authors
+
+ Michael Granger <ged@FaerieMUD.org>
+
+
+== Description
+
+Test-Unit-Mock is a class for conveniently building mock objects in Test::Unit
+test cases. It is based on ideas in Ruby/Mock by Nat Pryce
+<nat.pryce@b13media.com>, which is a class for doing much the same thing for
+RUnit test cases.
+
+It allows you do make a mocked object that will respond to all the methods of
+the real class (albeit probably not with correct results) with one line of
+code. Eg.,
+
+  mockSocket = Test::Unit::MockObject( TCPSocket ).new
+
+You can then specify return values for the methods you wish to test in one of
+several different ways:
+
+  # Make the #addr method return three cycling values (which will be repeated
+  # when it reaches the end
+  mockSocket.setReturnValues( :addr => [
+      ["AF_INET", 23, "localhost", "127.0.0.1"],
+      ["AF_INET", 80, "slashdot.org", "66.35.250.150"],
+      ["AF_INET", 2401, "helium.ruby-lang.org", "210.251.121.214"],
+    ] )
+
+  # Make the #write and #read methods call a Proc and a Method, respectively
+  mockSocket.setReturnValues( :write => Proc::new {|str| str.length},
+                              :read => method(:fakeRead) )
+
+  # Set up the #getsockopt method to return a value based on the arguments
+  # given:
+  mockSocket.setReturnValues( :getsockopt => {
+      [Socket::SOL_TCP,    Socket::TCP_NODELAY] => [0].pack("i_"),
+      [Socket::SOL_SOCKET, Socket::SO_REUSEADDR] => [1].pack("i_"),
+    } )
+
+You can also set the order in which you expect methods to be called, but you
+don't have to do so if you don't care:
+
+  mockSocket.setCallOrder( :addr, :getsockopt, :write, :read, :write, :read )
+
+
+By default, when testing for call order, other method calls may be interspersed
+between the calls specified without effect, and only a missing or misordered method
+call causes the assertions to fail. If you want the call order to be adhered to
+strictly, you can set that:
+
+  mockSocket.strictCallOrder = true
+
+Then, when you're ready to test, just activate the object and send it off to
+whatever code you're testing:
+
+  mockSocket.activate
+  testedObject.setSocket( mockSocket )
+  ...
+
+  # Check method call order on the mocked socket (adds assertions)
+  mockSocket.verify
+
+Assertion failures contain a message that specifies exactly what went wrong,
+eg.:
+
+  $ ruby misc/readmecode.rb
+
+    1) Failure!!!
+  test_incorrectorder(MockTestExperiment) [./mock.rb:255]:
+  Call order assertion failed: Expected call to :write, but got call to :read 
+    from misc/readmecode.rb:77:in `test_incorrectorder' at 0.00045
+    instead
+
+    2) Failure!!!
+  test_missingcall(MockTestExperiment) [./mock.rb:255]:
+  Call order assertion failed: Missing call to :read.
+
+If you require more advanced functionality, you can also use the mocked object
+class as a superclass:
+
+   # Create a mock socket class
+   class MockSocket < Test::Unit::MockObject( TCPSocket )
+        def initialize
+            super
+            setCallOrder( :read, :read, :read, :write, :read )
+            strictCallOrder = true
+            @io = ''
+        end
+
+       def read( len )
+           super # Call the mocked method to record the call
+           rval = @io[0,len]
+           @io[0,len] = ''
+
+           return rval
+       end
+
+       def write( str )
+           super # Call the mocked method to record the call
+           @io += str
+           return str.length
+       end
+   end
+
+
+You can also add debugging to your tests to give you a timestamped history of
+each call:
+
+  # Call the methods in the correct order
+  mockSocket.addr
+  mockSocket.getsockopt( Socket::SOL_TCP, Socket::TCP_NODELAY )
+  mockSocket.write( "foo" )
+  mockSocket.read( 1024 )
+  mockSocket.write( "bar" )
+  mockSocket.read( 4096 )
+
+  # Check method call order on the mocked socket
+  mockSocket.verify
+
+  if $DEBUG
+    puts "Call trace:\n\t" + mockSocket.callTrace.join("\n\t")
+  end
+
+This outputs something like:
+
+  Call trace:
+    addr(  ) at 0.00015 seconds from misc/readmecode.rb:64:in `test'
+    getsockopt( 6,1 ) at 0.00030 seconds from misc/readmecode.rb:65:in `test'
+    write( "foo" ) at 0.00040 seconds from misc/readmecode.rb:66:in `test'
+    read( 1024 ) at 0.00050 seconds from misc/readmecode.rb:67:in `test'
+    write( "bar" ) at 0.00063 seconds from misc/readmecode.rb:68:in `test'
+    read( 4096 ) at 0.00072 seconds from misc/readmecode.rb:69:in `test'
+
+
+== More Information
+
+For more information about mock objects and unit testing, see:
+
+  <URL: http://www.sidewize.com/company/mockobjects.pdf>
+
+
+== Requirements
+
+  * Ruby >= 1.6.8 - Older versions have not been tested, but may work.
+    <URL: http://www.ruby-lang.org/en/>
+
+  * Test::Unit - Of course.
+    <URL: http://raa.ruby-lang.org/list.rhtml?name=testunit>
+
+  * The 'diff' library - Used to compare the call lists.
+    <URL: http://raa.ruby-lang.org/list.rhtml?name=diff>
+
+
+== Caveats
+
+This module, while simple, has not been extensively tested under environments
+other than my own (Linux). It has worked well for me, but your mileage may vary.
+
+I would greatly appreciate feedback on any aspect of this software. Suggestions,
+feature requests, questions, design critiques, and bug reports are most
+welcome. Relevant patches are particularly helpful. I may be reached at
+<ged@FaerieMUD.org>.
+
+
+== Installation
+
+To run the included test suite:
+
+  $ ruby test.rb
+
+To generate HTML documentation:
+
+  $ rdoc README mock.rb
+
+To install:
+
+  $ su
+  # ruby install.rb
+
+
+== Legal
+
+Test-Unit-Mock is Free Software which is Copyright (c) 2002,2003 by The
+FaerieMUD Consortium.
+
+You may use, modify, and/or redistribute this software under the terms of the
+Ruby License, a copy of which should have been included in this distribution
+(See the file COPYING). If it was not, a copy of it may be obtained online at
+http://www.ruby-lang.org/en/LICENSE.txt (English language) or
+http://www.ruby-lang.org/ja/LICENSE.txt (Japanese language).
+
+THIS PACKAGE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED WARRANTIES,
+INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF MERCHANTIBILITY AND
+FITNESS FOR A PARTICULAR PURPOSE.
+
+
+ $Id: README,v 1.1 2004/03/24 02:40:30 neoneye Exp $
+
+

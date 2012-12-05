@@ -1,0 +1,7 @@
+
+
+
+*	When doing View#model_update then maybe also update the scroll_x.
+	At the moment only scroll_y behaves as a robust iterator.
+	
+*	Exercise multiple views at the same time.

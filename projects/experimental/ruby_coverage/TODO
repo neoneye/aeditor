@@ -1,0 +1,13 @@
+What needs to be done:
+
+*	'end' statements isn't detected correct. I (Simon) has
+	only little insight how the original 'coverage.rb' works.
+	I don't know how to accomplish this. Please contribute
+	in case you know it.
+
+*	Have a Look at 'profiler.rb', how does it count which
+	pieces of code that has be executed.
+	When we have this information available, then produce
+	some nice HTML, so that you can browse that information.
+
+*	nicer html output.

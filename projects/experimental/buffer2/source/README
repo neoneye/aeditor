@@ -1,0 +1,127 @@
+AEDITOR 2.4
+===========
+
+This is a new incarnation of AEditor, still barebones, slow, still 
+very rough, no undo/redo, no advanced edit strategies 
+(it has a new datastructure that rocks). If we don't consider the 
+code for wrapping libncursesw, then the core of the editor only takes 
+up 1500 lines of ruby code. This README is written with this editor.
+
+homepage:
+http://aeditor.rubyforge.org/
+
+
+screenshot:
+http://aeditor.rubyforge.org/aeditor_shots/058.png
+
+
+mailinglist:
+http://rubyforge.org/mailman/listinfo/aeditor-talk
+
+
+Features
+========
+
+folding
+bookmarks
+selections
+unicode glyphs
+syntax coloring
+multibuffer
+
+
+
+Keybindings
+===========
+
+ctrl x ......... quit
+ctrl o ......... save buffer
+arrow keys ..... move cursor
+letters ........ insert text
+backspace ...... erase char left of cursor (or selection)
+delete ......... erase char right of cursor (or selection)
+home ........... move cursor either to linebegin or textbegin
+end ............ move cursor to lineend
+ctrl left ...... move word left
+ctrl right ..... move word right
+pageup ......... move a page up
+pagedown ....... move a page down
+ctrl pageup .... move to top
+ctrl pagedown .. move to bottom
+F1 ............. insert a fullwidth glyph (〜)
+F2 ............. dump statistics to log
+F3 ............. search down
+shift F3 ....... search up
+ctrl u ......... use clipboard data as search pattern
+ctrl k k ....... toggle bookmark
+ctrl k p ....... goto prev bookmark
+ctrl k n ....... goto next bookmark
+ctrl f f ....... expand fold
+ctrl f 5 ....... collapse 5 lines
+ctrl f v ....... convert selection into fold
+ctrl v ......... toggle selection mode
+ctrl p ......... paste from clipboard
+F12 ............ cycle to next buffer
+
+
+
+Logfile
+=======
+
+A logfile is outputted in the homedir.
+$HOME/aeditor-2.0.log
+
+It's interesting to do a tail -f on it.
+
+
+
+License
+=======
+
+Ruby license
+
+
+
+Author
+======
+
+Simon Strandgaard <neoneye@gmail.com>
+
+
+
+Installation of libncursesw.so
+==============================
+
+Fetch ncurses version 5.4.
+
+prompt> ./configure --enable-widec --with-shared
+prompt> make
+prompt> make install
+
+
+
+Installing of AEditor
+=====================
+
+prompt> ruby extconf.rb
+prompt> make
+
+
+maybe you need to set the LANG envvar
+prompt> setenv LANG en_DK.UTF-8
+
+maybe you need to set the TERM envvar
+prompt> setenv TERM xterm-color 
+
+maybe you need to install a unicode font too
+you can find a unicode font here:
+http://www.cl.cam.ac.uk/~mgk25/ucs-fonts.html
+
+
+now you can run aeditor
+
+prompt> ruby main_tui.rb
+
+
+
+// END

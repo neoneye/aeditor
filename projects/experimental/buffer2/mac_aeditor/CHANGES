@@ -1,0 +1,41 @@
+13-04-2005 Neoneye <neoneye@gmail.com>
+*	I had forgotten a 'break' in the dispatch switch, causing
+	the newline case to behave weird. Fixed.
+*	Investigated if letter/line spacing really used
+	2pixel increments (which was wrong). But it used
+	1pixel increments as it were supposed to.
+*	on startup we now scroll to the cursor area.
+*	I am more used to having origo in the top/left corner, so
+	I have flipped the y scale. But this had impact on how
+	the drawInRect rendered the glyphs in the first row..
+	now the first row looks extremely ugly. 
+
+12-04-2005 Neoneye <neoneye@gmail.com>
+*	rough scrolling is now working when moving the caret.
+*	splitline is now roughly working.
+*	figured out why the first letter in the line didn't got
+	rendered (it was because of negative value in unsigned int).
+
+11-04-2005 Neoneye <neoneye@gmail.com>
+*	we can now load a file into the model.
+*	we can now render the content of the model.
+*	we can now insert text into the model via the keyboard.
+*	cursor movement is now working.
+*	we can now render a block-caret.
+
+10-04-2005 Neoneye <neoneye@gmail.com>
+*	ported some of my ruby code into objc, for the model/view.
+
+09-04-2005 Neoneye <neoneye@gmail.com>
+*	optimized rendering is now working with arbitrary fonts.
+*	got the topmost line aligned with the top-bound.
+*	added sliders to adjust linespacing and letterspacing.
+*	glyphs are now centered within their cell(s).
+*	apple+ increases the fontsize.. and apple- decreases.
+*	previously text could only be rendered with white color.
+	now we can render with colors! 
+
+08-04-2005 Neoneye <neoneye@gmail.com>
+*	added a "refresh" button that forces a complete repaint.
+*	do statistics on time spend on rendering each line.
+*	added a popup that lets you choose the rendering algorithm.

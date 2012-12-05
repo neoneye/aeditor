@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE article
+    PUBLIC "-//OASIS//DTD DocBook XML V4.2//EN"
+        "http://www.oasis-open.org/docbook/xml/4.2/docbookx.dtd" [
+	<!ENTITY header SYSTEM "header.xml">
+	<!ENTITY overview SYSTEM "overview.xml">
+	<!ENTITY install SYSTEM "install.xml">
+	<!ENTITY skeleton SYSTEM "skeleton.xml">
+	<!ENTITY setup SYSTEM "setup.xml">
+	<!ENTITY problems SYSTEM "problems.xml">
+]>
+<!-- $Id: main.xml,v 1.1 2003/08/23 10:50:29 neoneye Exp $ -->
+<article>
+&header;
+&overview;
+&install;
+&skeleton;
+&setup;
+&problems;
+</article>

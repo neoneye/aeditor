@@ -1,0 +1,13 @@
+<articleinfo>
+	<title>A minimal DocBook setup on Unix</title>
+	<subtitle>using docbook-xml-4.2 and xsltproc</subtitle>
+	<author>
+		<firstname>Simon</firstname>
+		<surname>Strandgaard</surname>
+		<affiliation>
+			<address>
+			<email>lsjdflsdjflksdjf</email>
+			</address>
+		</affiliation>
+	</author>
+</articleinfo>

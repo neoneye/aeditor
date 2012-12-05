@@ -1,0 +1,97 @@
+<section id="frontend">
+<title>Multiple Frontends</title>
+<para>placeholder.
+</para>
+<para>I am also considering trying out: wxWindows, fltk.
+</para>
+<section>
+<title>Synopsis</title>
+<para>placeholder.
+</para>
+</section>
+
+<section>
+<title>Ncurses</title>
+<para>Any respectable editor has a terminal frontend. This is
+also true for AEditor.</para>
+<para>Ncurses is unfortunatly not able to tell the state of
+the modifier keys. As far as I know only XTerm supplies the
+modifier state, when you press a key. Because of these 
+restrictions the keybinding facilities are very limited.
+I am thinking about creating a VI interface for the Ncurses
+frontend, in order to adress these issues.</para>  
+<para>investigate unicode support in Ncurses.
+</para>
+<para>investigate <function>define_key</function>.
+</para>
+</section>
+
+<section>
+<title>Fox Toolkit</title>
+<para>Fox works on many platforms and it works well with Ruby.
+Unfortunatly Fox does not support unicode and the documentation
+is poor. Besides that its very nice to do programming with. 
+Fox is C++ code and has a ok notification mechanism. The compilation 
+of you own Fox code is fast (Fox is doing much better than QT). 
+The best reference to Fox is its source code (easy to understand).
+The visual look'n'feel could be better. Besides all these things
+I consider Fox to be the way to go for AEditor. Fox wins over QT
+because of license issues and faster compilation. Fox wins over GTK 
+because of a better API and more OOP spirit.</para>
+<para>I have made some experiments with writing my own custom 
+AEditor widget in C++. I also made some semi-successful attempts 
+to glue it together with Ruby.</para>
+</section>
+
+<section>
+<title>GTK--</title>
+<para>The first GUI I started trying out were 
+<productname>GTK--</productname> becasue its C++ and there would
+be a chance that I could get away easily (work smarter not harder).
+Unfortunatly it behaves strange (GTK'ish), when something isn't
+working I had to dvelve into the C documentation and try to
+figure out why it wasn't working. I gave up after have spend a week on
+it without any progress. GTK has unicode, themable, is only a GUI (not
+the entire operating system). I don't love GTK, but I am really 
+interested in making a working AEditor widget for it.</para>
+<para>I made an experimental AEditor widget, but very far from 
+functional. Perhaps I should write the widget directly for GTK
+in order to get more success? Do you have any experience writing 
+custom-widgets using GTK ?</para>
+</section>
+
+<section>
+<title>QT</title>
+<para>Bad news first: License sucks, The moc precompiler makes
+compilation way too timeconsuming, QT is not just a window
+toolkit (its a whole api for everything). Besides these really bad 
+things I like the look'n'feel which can be customized a lot. QT has 
+support for unicode. Also QT is C++. Because of the licensing issues 
+I don't feel good about QT. Because of the other bad things
+makes me try to avoid it.</para>
+<para>I have made an experimental AEditor widget for QT, but
+I have stopped working on it because of too slow compilation issues
+(it takes 3 minutes to compile 2 c++ files on my pentium350, 
+way too much for my taste).
+</para>
+</section>
+
+<section>
+<title>OpenGL</title>
+<para>Todays editors loon'n'feel is terrible. Syntax hiliting
+is messy and there is no nice visual effects which use your
+expensive Radeon graphics card. Normal people which don't do
+programming doesn't find programmers-editors attractive. 
+I have tried teach my brother how to do programming, but he 
+rather wants to play silly games which look nice.</para>
+<para>I want to create an application which is visual appealing,
+which has the abilities to attract new people to programming.
+Much visual bloating, One big show off. NO!</para>
+<para>Seriously I think using OpenGL can help pair-programming, 
+by making nice realtime animations of otherwise disturbing operations.
+For instance, the visual disturbance of PageDown could be 
+reduced by animating the operation over a few consequtive frames,
+maybe 5 frames is enough. This is my primary goal with OpenGL. 
+</para>
+</section>
+</section>

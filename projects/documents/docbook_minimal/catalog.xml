@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+<!DOCTYPE catalog
+   PUBLIC "-//OASIS/DTD Entity Resolution XML Catalog V1.0//EN"
+   "http://www.oasis-open.org/committees/entity/release/1.0/catalog.dtd">
+<catalog xmlns="urn:oasis:names:tc:entity:xmlns:xml:catalog">
+  <!-- ====================================================\
+  |                                                        |
+  | This 'catalog.xml' file translates online refences     |
+  | into machine-local references, so that we can compile  |
+  | docbook documents when the machine is offline.         |
+  |                                                        |
+  | It assumes a few things (which you may want to change) |
+  |    username = neoneye                                  |
+  |    docbook-DTDs        is installed at ~/docbook/xml/  |
+  |    docbook-stylesheets is installed at ~/docbook/xsl/  |
+  |    docbook-xml, version 4.2                            |
+  |                                                        |
+  \===================================================== -->
+
+  <!-- ====================================================\
+  | DTD                                                    |
+  \===================================================== -->
+  <rewriteSystem
+    systemIdStartString="http://www.oasis-open.org/docbook/xml/4.2/"
+    rewritePrefix="file:///home/neoneye/docbook/xml/" />
+
+  <!-- ====================================================\
+  | stylesheet                                             |
+  \===================================================== -->
+  <group  prefer="public"  xml:base="file:///home/neoneye/docbook/xsl/" >  
+    <rewriteURI
+      uriStartString="http://docbook.sourceforge.net/release/xsl/current/"
+      rewritePrefix="" />
+    <!-- Makefile: translate 'xhtml_onechunk' into uri -->
+    <uri
+      name="xhtml_onechunk"
+      uri="xhtml/docbook.xsl" />
+    <!-- Makefile: translate 'xhtml_chunks' into uri -->
+    <uri
+      name="xhtml_chunks"
+      uri="xhtml/chunk.xsl" />
+  </group>
+</catalog>

@@ -1,0 +1,36 @@
+task :default => :testall
+
+task :testall do
+	sh "ruby test_all.rb"
+end
+
+task :createlinks do
+	# Create links to the source dir, so that its easier to
+	# reach the files within VIM.
+	require 'fileutils'
+	names = nil
+	relpath = File.join("..", "source")
+	FileUtils.cd(relpath) do
+		names = Dir.glob('*.rb').delete_if do |name|
+			not File.stat(name).file?
+		end
+		puts "creating: " + names.inspect
+		names.map!{|name| File.join(relpath, name)}
+	end
+	names.each do |name|
+		bname = File.basename(name)
+		next if FileTest.exists?(bname)
+		FileUtils.ln_s(name, bname)
+	end
+end
+
+task :removelinks do
+	names = Dir.glob('*.rb')
+	names.delete_if {|name| not File.lstat(name).symlink? }
+	if names.empty?
+		puts "no links to remove" 
+	else
+		names.each {|name| FileUtils.rm(name) }
+		puts "removed: " + names.inspect
+	end
+end

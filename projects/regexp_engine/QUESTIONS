@@ -1,0 +1,465 @@
+<warning>
+
+WARNING: this document is old, and therefor doesn't 
+reflect the reality.  Simon Strandgaard  22-Apr-2004.
+
+__________________________________________________________
+</warning>
+
+
+Design-questions/answers.
+
+terminologi used in this document:
+  'E' = epsilon, the empty string.
+  [1] = outer-repeat
+  [2] = inner-repeat
+  
+
+[scanner] How to describe integrity of nested repeats?
+======================================================
+
+Because of the nested structure, the problem becomes nested.
+The integrity data doesn't tell anything about how the
+structure of the expression. This is what I want.
+I want to _clearly_ describe the exact steps the algorithm
+should take. 
+
+
+[scanner] When does Repeat stop?
+================================
+
+note: alternation stops on first match question!
+
+Imagine that '%' is an alternation ( | | ) pattern 
+inside /( % )+o/  How 
+First match is when the pattern is looped 4 times
+
+% o
+% % o             # match  (2 times)
+% % % o
+% % % % o         # match  (4 times)
+% % % % % o       # end of input.. 
+
+We cannot loop it 5 times.
+
+If we had picked another alternation pattern
+earlier we may have been able to loop it more than
+4 times.. for instance 10 times. However alternation
+stops on the first match.. it doesn't try other
+combinations, therefore the longest match will be 4.
+
+
+[scanner] What does #node.accept return?
+========================================
+
+****************************************************************
+* Note: this is specific for the old 'scanner.rb' file.        *
+# the new scanner named 'xcanner.rb' does not return anything. *
+****************************************************************
+
+There are 3 class which can terminate a scanner:
+ Last,      end of expression.. only one instance are allowed.
+ RepeatEnd, end of a repeat-pattern.
+ Nil,       end of an alternation-pattern (doesn't modify returnvalue).
+
+Begin outside repeat (the top level expression):
+ A)   raise Mismatch
+    
+ B)   visit_last's         [registers, []]
+      happens when the expression matches successfully.
+
+
+Being inside a repeat expression, these things can happen:
+ X)   visit_repeat_end's   [registers, end_positions]
+      happens inside a repeat expressions,
+      when both 'node.pattern' + 'node.succ' matches OK.
+
+ Y)   raise Mismatch
+      happens inside a repeat expressions,
+      when 'node.pattern' fails.
+      long before 'node.succ' gets a chance to be executed.
+
+ Z)   visit_repeat_end's   [nil, [old_input_position]]
+      happens inside a repeat expressions,
+      when 'node.pattern' matches OK and 
+      when the 'node.succ' mismatch'es.
+      Watch out, no error are raised!
+
+
+[scanner] First issue #accept on .pattern and then on .succ?
+============================================================
+
+It is very tempting to let #visit_alternation and #visit_repeat
+first invoke  'node.pattern.accept(self)'  and next invoke
+'node.succ.accept(self)'.  But watch out!
+
+Consider nested repeats, for instance /(a.*b)*/
+The nested repeat cannot be maximized if its issued as 2
+succeding #accept calls.  In order to get nested-maximization
+working properly, we must use a stack and let #visit_<typename>_end
+pop and invoke accept on that element.
+
+Conclusion: maximization of nested repeats, requires that
+#visit_repeat_end are able to invoke #accept on node.succ.
+
+
+How does the backtracking mechanism work?
+=========================================
+
+Alternations in conjunction with Repeat are in paticular 
+difficult to deal with, it requires backtracking. For instance 
+  /(foob|fo|o)*bar/.match("foobar") -> ["foobar", "o"]
+yields the following match attempts:
+
+  # 0 time
+  b          # bar
+  # 1 time "foob"  ok
+  # 2 times
+  foobb      # foob bar
+  foobf      # foob foob
+  foobf      # foob fo
+  foobo      # foob o
+  ### BACTRACK ###
+  # 1 time "fo"  ok
+  # 2 times
+  fob        # fo bar
+  fof        # fo foob
+  fof        # fo fo
+  # 2 times "fo" "o"  ok
+  # 3 times  ok
+  foobar     # fo o bar    stop; we found a match 
+
+The old scanner did not implement backtracking.  
+The primary goal for the new scanner are to implement backtracking.
+
+TODO: describe how this mechanism works.
+TODO: find more difficult backtracking examples.
+
+
+[repeat] Can endless loops occur?
+=================================
+
+Yes. nested repeats where there are no upper limit
+for how many times it may loop. Endless loops
+cannot occur when a maximum count are specified.
+
+  for instance /x((.)*)*x/.match("0x1x2x3"):
+  [1] xEx       -
+  [1] attempt to match first time
+  [2] xEx       -
+  [2] x.x       ok
+  [2] x..x      -
+  [2] x...x     ok
+  [2] x....x    -
+  [2] x.....x   stop
+  [1] attempt to match second time
+  [2] x...Ex    ok
+  [2] x....x    -
+  [2] x.....x   stop
+  [1] attempt to match trird time
+  [2] x...Ex    ok
+  [2] x....x    -
+  [2] x.....x   stop
+  [1] attempt to match fourth time
+  [2] x...Ex    ok
+  [2] x....x    -
+  [2] x.....x   stop
+
+In order to prevent it, we can watch the repeat-end-positions (reps)
+and see if they change.  If they don't we got us a endless loop.
+How to detect this as early as possible, and how to bail out?
+
+
+Where should endless loop be detected?
+======================================
+
+  A)  the caller   (outer-repeat)
+  B)  the callee   (inner-repeat)
+
+If its possible then it should be detected in (B), the 
+sooner we are able to bail out the better. But I don't 
+believe its possible to detect it that early.
+
+Lets use (A).
+
+
+[repeat] When does Repeat mismatch?
+===================================
+
+  1) minimum condition are not statisfied. 
+  
+  2) all attempts failed, we have not gotten a single result. 
+     TODO  there is an exception to this, when the repeat.pattern
+     has matched, and the outside pattern fails. Then we have
+     no result, but 
+
+  for instance /a(x{2}*)a/.match("0axxxxa1"):
+  [1] aEa       -
+  [1] attempt to match first time
+  [2] axa       -
+  [2] axxa      -  LOOK HERE, neither match nor mismatch, IMPORTANT!
+  [1] attempt to match second time
+  [2] axxxa     -
+  [2] axxxxa    ok
+  [1] attempt to match third time
+  [2] axxxxxa   -
+  [2] axxxxxxa  endofinput, raise mismatch
+  [1] pattern mismatch, stop
+
+
+[repeat] When should we stop looping?
+=====================================
+
+  1) when number of times we have looped so far >= maximum.
+  
+  2) when pattern.accept mismatches, then we know we have reached
+     maximum for how many times the pattern could be repeated.
+  
+  3) when maximum==infinity and endless loop are detected.
+
+
+[repeat] Left2Right maximization, how to do it?
+===============================================
+
+When there are many repeats in a sequence, eg: /a(.*)b(.*)c/
+The most efficient way to match such expression, is
+to match from left to right.
+
+A possible sequence could look like, requires accumulation
+of leftmost-sub-matches.
+abc         -
+a.b                          accumulate
+a..b        ok               accumulate
+a...b                        accumulate
+a....b      ok               accumulate
+a....bc     -
+a....b.c    -
+a....b..c   -
+a..bc       -
+a..b.c      -
+a..b..c     ok  result
+
+Another possibility could be to have 2 stategies.
+Lets make a @maximize boolean to describe it:
+  when 'true' the current repeat are in maximization-mode.
+  when 'false' the current repeat are in non-greedy mode.
+First the left-most repeat node recieves maximization focus.
+All other nodes uses a non-greedy strategy.
+When the repeat pattern in focus, cannot be repeated anymore,
+then we have to pass focus further to the next repeat-node.
+When there are no more repeat-nodes to recieve focus, then
+we are done with maximizing our result.
+
+
+[repeat] How to pass maximization focus to next repeat (efficiently)?
+=====================================================================
+
+If we have a regexp "a(.*)b(.*)c" and a string "ayyybyycxc"
+When we maximize the first repeat-node, then we find "ayyybyyc" as 
+result. Then we have to maximize second repeat-node, 
+It may be inefficient to start out with "ayyybc", We therefore
+must resume from the found result "ayyybyyc" and continue until
+we find "ayyybyycxc" as our final result.
+
+Conclusion: When finding a sub-match, then we must clone the
+whole resume-stack (with index'es on).  When tranfering focus, then
+we must re-insert the found resume stack as our new resume stack.
+
+
+[repeat] How are minimum inefficient?
+=====================================
+
+What are the unnecessary work we are doing when (minimum > 0)?
+We matches the succesive pattern n times, where n = minimum.
+
+At the moment I am raising PathEnd when the RepeatEnd node
+is reached. We must install a fake 'found_history' so that
+#execute_next believes that it may continue.
+
+
+[repeat] How are alternation inefficient?
+=========================================
+
+left2right Repeat is not (yet) able to _restart_ 
+within an alternation.
+In case you have a pattern /x*(y{1,3}|y{6,})x/
+and want to match "0xxyyyyyyyyxx1". Then it will do this:
+
+first it will attempt to maximize first repeat:
+x                  -
+xx ALT1            -
+	x
+	yx
+	yyx
+	yyyx
+xx ALT2            -
+	yyyyyyx
+	yyyyyyyx
+	yyyyyyyyx      OK
+xxx                -
+xxxx               -
+
+
+Next it will try to maximize the following repeat, in
+this case there are 2 repeats.. so it will try both.
+
+xx ALT1            -
+	x
+	yx
+	yyx
+	yyyx
+xx ALT2            -
+	yyyyyyx
+	yyyyyyyx
+	yyyyyyyyx      OK
+	yyyyyyyyyx   
+	yyyyyyyyyyx   
+
+Final result are "xxyyyyyyyyx".
+
+
+[repeat] How are right2left maximization inefficient?
+=====================================================
+
+Because of the recursive structure. First-repeat calls Last-repeat.
+Last-repeat maximizes itself and returns. Then First-repeat can
+continue and invokes again Last-repeat. As you can imagine the
+rightmost repeat gets maximized first, and only to the very end
+the leftmost repeat gets maximized. Much unnecessary work.
+The only solution I see are to implement left2right maximization.
+
+
+[repeat] How are greedy inefficient?
+====================================
+
+The current solution attempts to increment the number of times
+the repeat.pattern should be repeat by one. If we don't consider 
+repeat.succ then the running time are O(N).
+However O(logN) can be achieved by branching binary out.
+For instance /x(.*)x/, could result in a sequence like:
+  x.{100}x   mismatch, count are too high
+  x.{50}x    mismatch, count are too high
+  x.{25}x    mismatch, count are too high
+  x.{37}x    match, count are too low
+  x.{44}x    mismatch, count are too high 
+  x.{40}x    match, count are too low
+
+I must find a way to clone'n'store iterators regulary, so that 
+we don't have to scan forward from the last match every time.
+
+
+[repeat] How are lookahead inefficient?
+=======================================
+
+It makes no sense to use greedy-repeat within
+lookahead parentesis. Its waste of time.
+By translating them to non-greedy-repeats, we
+can much earlier bailout on the first match.
+
+For instance /x.*(?=y+)/ can safely be translated
+into following non-greedy expression: /x.*(?=y+?)/.
+
+Exception: nested parentesis within lookahead,
+for instance /x.*(?=y(.*)y)/, should still 
+output to registers.
+
+
+Does charclasses differs from Alternation?
+==========================================
+
+I have seen many places which thinks that
+(a|b|c)  ==  [abc]
+
+
+Nested Repeats, the advanced undo-method
+========================================
+
+How should we maximize an inner-repeat? 
+
+consider this regexp /(a+b+)+/
+'a+' lets name it 'innerfirst'
+'b+' lets name it 'innersecond'
+'( )+' let name it 'outer'
+
+The startup maximization procedure occurs like
+
+	[]   an empty backtracking stack
+
+	begin outer 
+	[outerA-]
+
+	begin innerfirst   
+	[outerA-, innerfirstA-]
+
+	end of innerfirst
+	[outerA-, innerfirstA()]
+
+	begin innersecond   
+	[outerA-, innerfirstA(), innersecondI-]
+
+	end of innersecond
+	[outerA-, innerfirstA(), innersecondI()]
+
+	end of outer 
+	[outerA([innerfirstA(),innersecondI()])]
+
+This is what is difficult for me to understand.. we need
+to transform the backtrackingstack into this.
+
+	[outerA-, innerfirstA(), innsersecondI()]
+
+In the end we wish an output similar to the above,
+observe that innersecond has been removed, because its
+INACTIVE.
+
+At some point later when the the outer loop has run a few times,
+then the backtracking stack will look like
+	[	outerA(
+			[innerfirstD(),innersecondD()], 
+			[innerfirstD(),innersecondD()] 
+		),
+		innerfirstA-   ]
+
+	end of innerfirst
+	[	outerA(
+			[innerfirstD(),innersecondD()], 
+			[innerfirstD(),innersecondD()] 
+		),
+		innerfirstA()  ]
+
+	begin of innersecond
+	[	outerA(
+			[innerfirstD(),innersecondD()], 
+			[innerfirstD(),innersecondD()] 
+		),
+		innerfirstA(),
+		innersecondI-   ]
+
+	end of innersecond
+	[	outerA(
+			[innerfirstD(),innersecondD()], 
+			[innerfirstD(),innersecondD()] 
+		),
+		innerfirstA(),
+		innersecondI()   ]
+
+	end of outer
+	[	outerA(
+			[innerfirstD(),innersecondD()], 
+			[innerfirstD(),innersecondD()], 
+			[innerfirstA(),innersecondI()] 
+		)  ]
+
+When we run #execute_next on outer, then the stack
+should be transformed into:
+	[	outerA(
+			[innerfirstD(),innersecondD()], 
+			[innerfirstD(),innersecondD()] 
+		),
+		innerfirstA(),
+		innersecondI()   ]
+
+At first I thought about removing inactive elements,
+but this is a really bad idea.. its much better to
+let them remove themselves in case they are done with
+their task.

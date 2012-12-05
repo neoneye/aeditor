@@ -1,0 +1,536 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>Fun with FreeBSD</title><meta name="generator" content="DocBook XSL Stylesheets V1.61.3" /></head><body><div class="article" lang="en" xml:lang="en"><div class="titlepage"><div><div><h1 class="title"><a id="id2860100"></a>Fun with FreeBSD</h1></div><div><div class="author"><h3 class="author"><span class="firstname">Simon</span> <span class="surname">Strandgaard</span></h3></div></div><div><div class="author"><h3 class="author"><span class="firstname">Thomas</span> <span class="surname">Gielfeldt</span></h3></div></div></div><div></div><hr /></div><div class="toc"><p><b>Table of Contents</b></p><dl><dt><a href="#id2936176">Introduction</a></dt><dd><dl><dt><a href="#id2936194">Simon's Setup</a></dt></dl></dd><dt><a href="#id2863698">Using The Vinum Volume Manager</a></dt><dd><dl><dt><a href="#id2863707">Zap The Disk</a></dt><dt><a href="#id2864654">Mirror Volume (RAID1)</a></dt><dt><a href="#id2866317">Starting Vinum At Boot</a></dt><dt><a href="#id2866454">Adding a subdisk</a></dt></dl></dd><dt><a href="#id2864190">Running A CVS Server</a></dt><dd><dl><dt><a href="#id2864524">Setup Repositories</a></dt><dt><a href="#id2864592">checkout attempt</a></dt></dl></dd><dt><a href="#id2864326">Nightly Backup Of Repositories</a></dt><dd><dl><dt><a href="#id2864338">The Backupbox Setup</a></dt><dt><a href="#id2864499">The Server Setup</a></dt><dt><a href="#id2936760">Restore from backup</a></dt></dl></dd><dt><a href="#id2866051">Network Address Translation</a></dt><dd><dl><dt><a href="#id2866073">Redirect port 80 to  WebServer</a></dt><dt><a href="#id2866108">Redirect port 22 to CVS-Server</a></dt></dl></dd><dt><a href="#id2921699">Samba</a></dt><dt><a href="#id2937576">Realtek 8019AS ISA netcard</a></dt><dd><dl><dt><a href="#id2937592">Requirements</a></dt><dt><a href="#id2937633">Install</a></dt><dt><a href="#id2937693">Post install</a></dt></dl></dd><dt><a href="#id2921852">Text Terminal</a></dt></dl></div><div class="section" lang="en" xml:lang="en"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a id="id2936176"></a>Introduction</h2></div></div><div></div></div><p>This documents describes how we (Simon/Thomas) have
+set'ed up our FreeBSD systems. It is primary intented as
+a reminder for ourselves, how did we do it, so that 
+maintainence is easier. We hope this document can be 
+educational for others. If you have any requests/problems
+then feel free to mail us.</p><p>We only talk about 
+<span class="application">FreeBSD-5.1</span>.</p><div class="section" lang="en" xml:lang="en"><div class="titlepage"><div><div><h3 class="title"><a id="id2936194"></a>Simon's Setup</h3></div></div><div></div></div><p>
+</p><div class="variablelist"><p class="title"><b>Simons Machines</b></p><dl><dt><span class="term"><tt class="filename">Desktop</tt></span></dt><dd><p>A silent <span class="productname">pentium133</span>™ which
+functions only as a <span class="application">X-terminal</span> through
+which I can connect to my server.
+The only time when its not turned on, is when I sleep.
+</p></dd><dt><span class="term"><tt class="filename">Gateway</tt></span></dt><dd><p>A noisy <span class="productname">pentium133</span>™ which 
+functions as a <span class="application">Gateway</span>.
+It is always turned on. Because of the noise its located in my
+wardrobe. It preserves also a <span class="application">VPN</span> 
+connection, so that my machines is on the same subnet as
+Thomas'es machines.
+</p><pre class="screen">
+# /etc/rc.conf
+gateway_enable=&quot;YES&quot;
+hostname=&quot;gateway.neoneye.home&quot;
+ifconfig_rl0=&quot;inet 10.0.0.1  netmask 255.255.0.0&quot;
+ifconfig_ep0=&quot;DHCP&quot;
+named_enable=&quot;YES&quot;
+</pre></dd><dt><span class="term"><tt class="filename">Server</tt></span></dt><dd><p>A noisy <span class="productname">pentium350</span>™ which  
+is my working horse. It is always turned on. Because of the noise 
+its located in my wardrobe.
+Keywords:
+<span class="simplelist">vinum, cvs-server, xdmcp, apache</span>.
+</p><pre class="screen">
+# /etc/rc.conf
+hostname=&quot;server.neoneye.home&quot;
+ifconfig_xl0=&quot;inet 10.0.0.10 netmask 255.255.0.0 media 100baseTX&quot;
+defaultrouter=&quot;10.0.0.1&quot;
+start_vinum=&quot;YES&quot;
+</pre></dd></dl></div></div></div><div class="section" lang="en" xml:lang="en"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a id="id2863698"></a>Using The Vinum Volume Manager</h2></div></div><div></div></div><p>When I setup'ed vinum, I had severe problems 
+with disklabeling my partions correct. When I discovered
+that vinum doesn't like to be on the C: partition, and
+thus instead placed it on the E: partition, then everything
+was working perfectly. 
+</p><div class="section" lang="en" xml:lang="en"><div class="titlepage"><div><div><h3 class="title"><a id="id2863707"></a>Zap The Disk</h3></div></div><div></div></div><div class="orderedlist"><ol type="1"><li><p>Warning this is dangerous, it will erase all your data!
+</p><pre class="screen">
+server# dd if=/dev/zero count=128 of=/dev/ad2
+server# fdisk -I /dev/ad2
+server# disklabel -w /dev/ad2
+server#
+</pre><p>Just ignore the warnings.
+</p></li><li><p>Invoke <b class="command">disklabel -e /dev/ad2</b>
+and change from:</p><pre class="screen">
+# /dev/ad2:
+8 partitions:
+#       size offset fstype [fsize bsize bps/cpg]
+ c: 80418240      0 unused  0     0      # &quot;raw&quot; part, don't edit
+</pre><p>To</p><pre class="screen">
+# /dev/ad2:
+8 partitions:
+#       size offset fstype [fsize bsize bps/cpg]
+ c:        *      * unused  0     0      # &quot;raw&quot; part, don't edit
+ e: 80418240      * vinum                    
+</pre><p>(important) the vinum man-pages say: “<span class="quote">partition ``c'' 
+represents the whole disk and should not be used for any other 
+purpose.</span>”  Of casue I overlooked this, which were terrible 
+confusing, therefore my advice is to use partition 'e:' instead!
+</p></li></ol></div><p>Let's verify that everything is OK.</p><pre class="screen">
+server# ls /dev/ad2*
+/dev/ad2   /dev/ad2c   /dev/ad2e
+server# disklabel /dev/ad2
+# /dev/ad2:
+8 partitions:
+#       size offset fstype [fsize bsize bps/cpg]
+ c: 80418240      0 unused  0     0      # &quot;raw&quot; part, don't edit
+ e: 80418240      0 vinum                    
+server#
+</pre></div><div class="section" lang="en" xml:lang="en"><div class="titlepage"><div><div><h3 class="title"><a id="id2864654"></a>Mirror Volume (RAID1)</h3></div></div><div></div></div><div class="orderedlist"><ol type="1"><li><p>Create a <tt class="filename">config1</tt> file with 
+the following content:</p><pre class="screen">
+drive a device /dev/ad1e
+drive b device /dev/ad2e
+volume reliable setupstate 
+  plex org concat
+    sd length 100m drive a
+  plex org concat
+    sd length 100m drive b
+</pre></li><li><pre class="screen">
+server# vinum create -f config1
+2 drives:
+D b                     State: up       /dev/ad2e       A: 229/329 MB (69%)
+D a                     State: up       /dev/ad1e       A: 39166/39266 MB (99%)
+
+1 volumes:
+V reliable              State: up       Plexes:       2 Size:        100 MB
+
+2 plexes:
+P reliable.p0         C State: up       Subdisks:     1 Size:        100 MB
+P reliable.p1         C State: up       Subdisks:     1 Size:        100 MB
+
+2 subdisks:
+S reliable.p0.s0        State: up       D: a            Size:        100 MB
+S reliable.p1.s0        State: up       D: b            Size:        100 MB
+server#
+</pre></li><li><p>Lets validate that its actually up
+</p><pre class="screen">
+server# ls /dev/vinum/
+control   controld  plex/     reliable  sd/
+server#
+</pre><p>Our 'reliable' volume seems to be up!
+</p></li><li><pre class="screen">
+server# newfs /dev/vinum/reliable
+server#
+</pre></li></ol></div><p>Our 'reliable' volume is now ready to use
+</p><pre class="screen">
+server# mount /dev/vinum/reliable /mnt
+server# df -h
+Filesystem            Size   Used  Avail Capacity  Mounted on
+/dev/ad0s1a           248M    53M   175M    23%    /
+devfs                 1.0K   1.0K     0B   100%    /dev
+/dev/ad0s1e           248M    18K   228M     0%    /tmp
+/dev/ad0s1f           8.2G   3.0G   4.5G    40%    /usr
+/dev/ad0s1d           248M   9.1M   219M     4%    /var
+/dev/vinum/reliable    97M   4.5M    84M     5%    /mnt
+server#
+</pre></div><div class="section" lang="en" xml:lang="en"><div class="titlepage"><div><div><h3 class="title"><a id="id2866317"></a>Starting Vinum At Boot</h3></div></div><div></div></div><p>We need only to modify 2 places.</p><div class="orderedlist"><ol type="1"><li><p>Append to <tt class="filename">/etc/rc.local</tt></p><pre class="screen">
+start_vinum=&quot;YES&quot;
+</pre></li><li><p>Append to <tt class="filename">/etc/fstab</tt></p><pre class="screen">
+/dev/vinum/reliable     /reliable       ufs     rw              2       2
+</pre></li></ol></div><p>Welcome to vinum world.
+</p></div><div class="section" lang="en" xml:lang="en"><div class="titlepage"><div><div><h3 class="title"><a id="id2866454"></a>Adding a subdisk</h3></div></div><div></div></div><p>Placeholder.
+</p></div></div><div class="section" lang="en" xml:lang="en"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a id="id2864190"></a>Running A CVS Server</h2></div></div><div></div></div><p>Let's build a reliable CVS server. Let's
+figure out how to manage permissions..etc.
+</p><p>If your server is behind a gateway, and you
+want CVS to be externaly accessable, then you will need 
+to setup special <a href="#ipnat_cvs.anchor.1">ipnat.rules</a>.
+</p><div class="section" lang="en" xml:lang="en"><div class="titlepage"><div><div><h3 class="title"><a id="id2864524"></a>Setup Repositories</h3></div></div><div></div></div><p>Setup cvs-groups for in <tt class="filename">/etc/group</tt>
+</p><pre class="screen">
+cvs_xeet:*:800:depth,neoneye,jonaz
+cvs_firma:*:801:depth,neoneye,thomas
+thomas:*:1000:
+neoneye:*:1001:
+depth:*:1002:
+jonaz:*:1003:
+</pre><p>As root execute following command sequence</p><pre class="screen">
+cd /usr/local
+mkdir cvsroot
+cd /usr/local/cvsroot
+</pre><p>Install your repositories here!</p><pre class="screen">
+mkdir mycvsrepository
+cvs -d /reliable/mycvsrepository init
+</pre><p>Ensure that the permissions is correct.</p><pre class="screen">
+&gt; pwd
+/usr/local/cvsroot
+&gt; ls -la
+total 10
+drwxr-xr-x   5 root  wheel      512 Nov 27 02:01 .
+drwxr-xr-x  15 root  wheel      512 Feb  4 10:28 ..
+drwxrwxr-x   5 root  cvs_firma  512 Mar 13 00:00 firma
+drwxrwxr-x   5 root  neoneye    512 Mar 13 00:00 neoneye_private
+drwxrwxr-x  14 root  cvs_xeet   512 Mar 13 00:00 xeet_bombrun_code
+</pre><p>What if the group/permission is wrong?</p><pre class="screen">
+cd /usr/local/cvsroot/firma
+chgrp -R cvs_xeet .
+chmod ug+rwx . CVSROOT
+chmod -R g+w *
+</pre></div><div class="section" lang="en" xml:lang="en"><div class="titlepage"><div><div><h3 class="title"><a id="id2864592"></a>checkout attempt</h3></div></div><div></div></div><p>On some other machine try issuing a cvs checkout, 
+to see if everything works.</p><pre class="screen">
+setenv CVS_RSH ssh
+cvs -d :ext:neoneye@10.0.0.122:/usr/local/cvsroot/xeet_bombrun_code co .
+</pre><p>
+Congratulations.. The repository should now be operational :-)
+</p></div></div><div class="section" lang="en" xml:lang="en"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a id="id2864326"></a>Nightly Backup Of Repositories</h2></div></div><div></div></div><p>We have some cvs-data which we really don't 
+want to loose, thus we want a backup every
+night. To be extra safe we want the backup transfered
+to a remote location.</p><p>Its also important that we are able to restore
+from a backup, thus we discuss how to do restoration.
+</p><div class="section" lang="en" xml:lang="en"><div class="titlepage"><div><div><h3 class="title"><a id="id2864338"></a>The Backupbox Setup</h3></div></div><div></div></div><div class="orderedlist"><ol type="1"><li><p>Create a <b class="userinput"><tt>cvsbackup</tt></b> user
+with a homedir and no password:</p><pre class="screen">
+root@backupbox# pw useradd cvsbackup -m -h -
+root@backupbox# 
+</pre></li><li><p>Validate that 
+<a href="http://ruby-lang.org/en/" target="_top">
+<span class="application">ruby</span></a> is 
+accessable from the <b class="userinput"><tt>cvsbackup</tt></b> account.</p><pre class="screen">
+cvsbackup@backupbox&gt; ruby -v
+ruby 1.8.0 (2003-08-04) [i386-freebsd5.1]
+cvsbackup@backupbox&gt; 
+</pre></li><li><p>Create a directory into which the backups has to be delivered:</p><pre class="screen">
+cvsbackup@backupbox&gt; pwd
+/home/cvsbackup
+cvsbackup@backupbox&gt; mkdir backup
+cvsbackup@backupbox&gt; 
+</pre></li><li><p>Install this script as
+<tt class="filename">/home/cvsbackup/remove.sh</tt></p><pre class="screen">
+#!/bin/sh
+# REMOVE OLD BACKUPs
+
+PATH=$PATH:~/bin:/usr/local/bin
+#echo $PATH &gt; env
+
+echo &quot;-------------------------------------&quot; &gt;&gt; log
+date &gt;&gt; log
+ruby remove.rb 1&gt; stdout 2&gt; errout
+cat stdout &gt;&gt; log
+cat errout &gt;&gt; log
+</pre></li><li><p>Install this script as
+<tt class="filename">/home/cvsbackup/remove.rb</tt></p><pre class="screen">
+# purpose: 
+# remove old files (preserve the latest 5 files).
+N = 5
+Dir.chdir(&quot;backup&quot;)
+repo = Dir[&quot;*&quot;].map{|i|`ls -t #{i}/*`.split(&quot;\n&quot;)}
+remo = repo.map{|i|i[N..-1]}.flatten.compact
+system(&quot;rm -rf &quot;+remo.join(&quot; &quot;)) unless remo.empty?
+#puts &quot;FILES=&quot;+repo.inspect
+puts &quot;REMOVED=&quot;+remo.inspect
+</pre></li><li><p>
+Add this to your crontab (<b class="userinput"><tt>crontab -e</tt></b>).
+This will keep the 5 newest files (remove old files) for
+all subdirs in <tt class="filename">backup</tt>. 
+Other files will be removed. The cronjob will be executed at 
+every midnight.</p><pre class="screen">
+0 0 * * * ~/remove.sh
+</pre><p>Validate that your crontab is 
+installed correct</p><pre class="screen">
+cvsbackup@backupbox&gt; crontab -l
+0 0 * * * ~/remove.sh
+cvsbackup@backupbox&gt;
+</pre></li></ol></div><p>The backupbox is now ready to recieve a daily incoming backupdir.
+You can keep track of status by issuing <b class="command">tail -f log</b>.
+</p></div><div class="section" lang="en" xml:lang="en"><div class="titlepage"><div><div><h3 class="title"><a id="id2864499"></a>The Server Setup</h3></div></div><div></div></div><p>The backup script will be executed by <b class="userinput"><tt>root</tt></b>.
+An entry in its log file (<tt class="filename">/root/backup/log</tt>), look
+like this:
+</p><pre class="screen">
+Fri Sep 12 00:00:01 CEST 2003
+NEONEY'S CVS-BACKUP TOOL
+source=&quot;/reliable/&quot;  
+dest=&quot;/root/backup/todays_snapshot_of_cvs/&quot;  
+stamp=&quot;20030912_00&quot;
+dropzone=&quot;cvsbackup@10.0.0.1:backup/.&quot;
+COMPRESSING REPOSITORIES
+#3 public_documents ... OK (13442 bytes)
+#2 dotfiles_neoneye ... OK (32076 bytes)
+#1 code_neoneye ... OK (25667 bytes)
+TRANSFERING REPOSITORIES
+DONE
+</pre><p>A good overview of what is going on. Follow
+this procedure in order to set this cronjob up:
+</p><div class="orderedlist"><ol type="1"><li><p>Validate that 
+<a href="http://www.zevils.com/doc/cvsbook/cvsbook_8.html" target="_top">
+<span class="application">cvslock</span></a> and 
+<a href="http://ruby-lang.org/en/" target="_top">
+<span class="application">ruby</span></a> is 
+accessable from the <b class="userinput"><tt>root</tt></b> account.</p><pre class="screen">
+root@server# cvslock
+cvslock: There's no directory parameter
+root@server# ruby -v
+ruby 1.8.0 (2003-08-04) [i386-freebsd5.1]
+root@server# 
+</pre></li><li><p>Make sure that SSH with sshkeys is working, 
+that you can create a <span class="emphasis"><em>passwordless</em></span> 
+<span class="application">SSH</span> connection, from the CVS-server 
+to the remote-backup-drop-location.</p><pre class="screen">
+root@server# ssh cvsbackup@backupbox
+cvsbackup@backupbox&gt; exit
+root@server#
+</pre></li><li><p>Create a backup directory</p><pre class="screen">
+root@server# pwd
+/root
+root@server# mkdir backup
+root@server#
+</pre></li><li><p>Install this script as
+<tt class="filename">/root/backup/backup.sh</tt></p><pre class="screen">
+#!/bin/sh
+# DO BACKUP OF REPOSITORIES
+
+cd /root/backup
+
+PATH=$PATH:~/bin:/usr/local/bin:/home/neoneye/bin
+#echo $PATH &gt; env
+
+echo &quot;-------------------------------------&quot; &gt;&gt; log
+date &gt;&gt; log
+ruby backup.rb 1&gt; stdout 2&gt; errout
+cat stdout &gt;&gt; log
+cat errout &gt;&gt; log
+</pre></li><li><p>Install this script as
+<tt class="filename">/root/backup/backup.rb</tt></p><pre class="screen">
+require 'fileutils'
+
+class Backup
+    # these constants must be absolute paths, 
+    # Ruby doesn't like &quot;~/stuff&quot; kind of paths! 
+    DIR_SOURCE = &quot;/reliable/&quot;
+    DIR_DEST = &quot;/root/backup/todays_snapshot_of_cvs/&quot;
+    DROPZONE = &quot;cvsbackup@10.0.0.1:backup/.&quot;
+
+    def initialize
+        @stamp = prepare_stamp
+        prepare_dirs
+    end
+    def prepare_stamp
+        Time.now.strftime(&quot;%Y%m%d_%H&quot;)
+    end
+    def prepare_dirs
+        if FileTest.exists?(DIR_DEST) 
+            FileUtils.rm_r DIR_DEST, :force =&gt; true
+        end
+        FileUtils.mkdir_p DIR_DEST, :mode =&gt; 0700
+    end
+    def names # repository_names
+        Dir.chdir(DIR_SOURCE)
+        Dir[&quot;*&quot;]
+    end
+    def backup(name)
+        dir_dest = DIR_DEST + name + &quot;/&quot;
+        dest = dir_dest + @stamp + &quot;.tar.gz&quot;
+        cmd_nest = &quot;tar cfz #{dest} #{name}&quot;
+        cmd = &quot;cvslock -q -d #{name} -c \&quot;#{cmd_nest}\&quot; .&quot;
+
+        # tar doesn't like leading '/' (slashes)
+        # thus we must chdir to DIR_SOURCE
+        Dir.chdir(DIR_SOURCE)
+        FileUtils.mkdir_p dir_dest, :mode =&gt; 0700
+        system(cmd)
+
+        FileTest.size(dest) # return number of bytes
+    end
+    def pretty_backup
+        ary = names
+        n = ary.size
+        ary.each do |name| 
+            print &quot;##{n} #{name} ... &quot;
+            $stdout.flush
+            bytes = backup(name) 
+            puts &quot;OK (#{bytes} bytes)&quot;
+            n -= 1
+        end
+    end
+    def transfer
+        # transfer to remote host
+        Dir.chdir(DIR_DEST)
+        system(&quot;scp -rBq * #{DROPZONE}&quot;)
+    end
+    def info
+        &lt;&lt;MSG
+source=#{DIR_SOURCE.inspect}  
+dest=#{DIR_DEST.inspect}  
+stamp=#{@stamp.inspect}
+dropzone=#{DROPZONE.inspect}
+MSG
+    end
+    def Backup.execute
+        i = Backup.new
+        puts &quot;NEONEY'S CVS-BACKUP TOOL&quot;
+        puts i.info
+        puts &quot;COMPRESSING REPOSITORIES&quot;
+        i.pretty_backup
+        puts &quot;TRANSFERING REPOSITORIES&quot;
+        i.transfer
+        puts &quot;DONE&quot;
+    end
+end
+
+Backup.execute
+</pre></li><li><p>
+edit the crontab (<b class="userinput"><tt>crontab -e</tt></b>).</p><pre class="screen">
+0 0 * * * /bin/sh /root/backup/backup.sh
+</pre></li></ol></div><p>The server should now deliver tarballs to the backupbox 
+at daily basis. You can monitor the log file 
+(<b class="command">tail -f /root/backup/log</b>)
+in order to keep an eye on how things is going.
+</p></div><div class="section" lang="en" xml:lang="en"><div class="titlepage"><div><div><h3 class="title"><a id="id2936760"></a>Restore from backup</h3></div></div><div></div></div><p>You will see that in every subdir in the repository, 
+cvslock has created 
+<tt class="filename">#cvs.rfl.cvslock.slowserver.home.432</tt>
+In order to reenable the repository, then you have to delete 
+those read-lock files.</p><pre class="screen">
+find . -name &quot;#cvs.rfl.cvslock*&quot; -exec rm -f {} \;
+</pre><p>Congratulations.. the cvslocks is now gone, 
+exactly as we wanted.</p></div></div><div class="section" lang="en" xml:lang="en"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a id="id2866051"></a>Network Address Translation</h2></div></div><div></div></div><p>Let's first have a look at how my current (final)
+<tt class="filename">/etc/ipnat.rules</tt> looks like, shall we:
+</p><pre class="screen">
+neoneye@gateway&gt; cat /etc/ipnat.rules 
+## rename outgoing (ftp, all) trafic
+map xl0 10.0.0.1/24 -&gt; 0/32 proxy port ftp ftp/tcp
+map xl0 10.0.0.1/24 -&gt; 0/32 portmap tcp/udp auto
+map xl0 10.0.0.1/24 -&gt; 0/32
+
+## rename incoming (http) trafic
+rdr xl0 0.0.0.0/0 port 80 -&gt; 10.0.0.253 port 80 tcp
+
+## rename incoming (ssh) trafic
+rdr xl0 0.0.0.0/0 port 666 -&gt; 10.0.0.1 port 22 tcp
+rdr xl0 0.0.0.0/0 port 22 -&gt; 10.0.0.253 port 22 tcp
+neoneye@gateway&gt;
+</pre><div class="section" lang="en" xml:lang="en"><div class="titlepage"><div><div><h3 class="title"><a id="id2866073"></a>Redirect port 80 to  WebServer</h3></div></div><div></div></div><p>
+Append the following to <tt class="filename">/etc/ipnat.rules</tt>
+</p><pre class="screen">
+rdr xl0 0.0.0.0/0 port 80 -&gt; 10.0.0.253 port 80 tcp
+</pre><p>Tell ipnat to reread its configuration 
+(<b class="command">ipnat -CF -f /etc/ipnat.rules</b>).
+</p></div><div class="section" lang="en" xml:lang="en"><div class="titlepage"><div><div><h3 class="title"><a id="id2866108"></a>Redirect port 22 to CVS-Server</h3></div></div><div></div></div><p>In order to do 
+<a id="ipnat_cvs.anchor.1"></a>
+<b class="command">cvs -d :ext:developername@publicip</b>,
+we need to redirect SSH. Add this to <tt class="filename">/usr/ipnat.rules</tt>.
+</p><pre class="screen">
+rdr xl0 0.0.0.0/0 port 666 -&gt; 10.0.0.1 port 22 tcp
+rdr xl0 0.0.0.0/0 port 22 -&gt; 10.0.0.253 port 22 tcp
+</pre><p>maybe this can be done smarter by having 
+a 'cvs' subdomaine in DNS ?
+</p></div></div><div class="section" lang="en" xml:lang="en"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a id="id2921699"></a>Samba</h2></div></div><div></div></div><p>
+This is how my <tt class="filename">/usr/local/etc/smb.conf</tt> 
+look like:</p><pre class="screen">
+[global]
+  guest ok = yes
+  workgroup = MYWGRP
+  security = share
+  remote announce = 10.0.0.255/WORKGROUP
+
+[unsafe]
+  comment = a unsafe disk
+  path = /unsafe
+  read only = yes
+  public = yes
+</pre></div><div class="section" lang="en" xml:lang="en"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a id="id2937576"></a>Realtek 8019AS ISA netcard</h2></div></div><div></div></div><p>Procedure for install FreeBSD5.0+ via an old 
+<span class="productname">Realtek 8019AS</span>™ ISA card!</p><div class="section" lang="en" xml:lang="en"><div class="titlepage"><div><div><h3 class="title"><a id="id2937592"></a>Requirements</h3></div></div><div></div></div><div class="itemizedlist"><ul type="disc"><li><p>Obtain the <span class="application">RSET8019.EXE</span> 
+program, this can be downloaded at 
+<a href="http://www.realtek.com.tw/" target="_top">Realtek</a>'s 
+homepage.</p></li><li><p>A DOS-boot-floppy, which allows you to execute the 
+<span class="application">RSET8019.EXE</span> program.</p></li></ul></div></div><div class="section" lang="en" xml:lang="en"><div class="titlepage"><div><div><h3 class="title"><a id="id2937633"></a>Install</h3></div></div><div></div></div><p>Following steps will install FreeBSD via 
+your realtek card.</p><div class="orderedlist"><ol type="1"><li><p><span class="application">RSET8019.EXE</span>,
+	Switch to jumperless mode and
+	write down settings(irq, port)</p></li><li><p>FreeBSD startup</p><pre class="screen">
+set hint.ed.0.disabled=0
+set hint.ed.0.port=0x280
+set hint.ed.0.maddr=0xcc000
+boot -v
+</pre></li><li><p>FreeBSD <span class="application">sysinstall</span>,
+	You should now be able to select a media &quot;ed0&quot;.
+	</p></li></ol></div><p>Congratulations.. you have now installed FreeBSD.
+</p></div><div class="section" lang="en" xml:lang="en"><div class="titlepage"><div><div><h3 class="title"><a id="id2937693"></a>Post install</h3></div></div><div></div></div><div class="orderedlist"><ol type="1"><li><p>
+	open the file <tt class="filename">/boot/device.hints</tt> 
+	with your favorite editor</p></li><li><p>
+	The <b class="userinput"><tt>hint.ed.0.*</tt></b> should look like this</p><pre class="screen">
+#hint.ed.0.disabled=&quot;1&quot;
+hint.ed.0.port=&quot;0x280&quot;
+hint.ed.0.irq=&quot;10&quot;
+#hint.ed.0.maddr=&quot;0xd8000&quot;
+hint.ed.0.maddr=&quot;0xcc000&quot;
+</pre></li><li><p>reboot</p></li></ol></div><p>
+Congratulations .. your machine is now wired :-)
+</p></div></div><div class="section" lang="en" xml:lang="en"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a id="id2921852"></a>Text Terminal</h2></div></div><div></div></div><p>
+I have an old <span class="productname">WYSE 520ES</span>™ terminal,
+connected to my Desktop machine.</p><p>TODO: the terminal has 25 lines, but only 24 are
+usable. Only <span class="application">VIM</span> are able to 
+use the last line. Why?</p><p>In order to enable serial-port1, I had to do this. 
+I could not get 38400 baud working, it outputted garbage.
+Therefore I had to stick to 19200 baud. Maybe its because of
+bad flowcontrol, I don't know?
+You can request <span class="application">init</span> to re-read 
+the <tt class="filename">ttys</tt> configuration, 
+by invoking <b class="command">kill -HUP 1</b>.
+</p><pre class="screen">
+# /etc/ttys @ desktop 
+ttyd1   &quot;/usr/libexec/getty std.19200&quot;  wy85    on  secure
+</pre><p>In order to get danish letters working correctly, 
+I had to add:</p><pre class="screen">
+# ~/.tcshrc @ desktop 
+setenv LC_CTYPE da_DK.ISO_8859-1
+</pre><p>The terminal configuration are:</p><pre class="screen">
+# menu's on the WY520ES terminal
+[DISPLAY]
+  80 Columns
+  Width Change = Clear
+  Interpret Controls
+  No Autowrap
+  Jump Scroll
+  Light Screen
+  Cursor
+  Cursor Blink Block
+  No Status Display
+  5x25 Pages
+  24 Lines/Screen
+  Vertical Coupling
+  Page Coupling
+  No Auto Resize Screen
+
+[GENERAL]
+  WY-85 Mode, 7-Bit Controls
+  DECSCL = WY285
+  Multinational Mode
+  User-Defined Keys Locked
+  User Features Locked
+  Numeric Keypad
+  Normal Cursor Keys
+  No Newline
+  UPSS ISO Latin-1
+  ID Matches Personality
+  When Available Update
+
+[COMMUNICATIONS]
+  COMM1: Transmit=19200
+  COMM1: Recieve=Transmit
+  COMM1: XOFF at 64
+  COMM1: 8 Bits, No Parity
+  COMM1: 2 Stop Bit
+  No Local Echo
+  Data Leads Only
+  Disconnect, 2 s Delay
+  Unlimited Transmit
+  Auto Answerback
+  Answerback
+  Modem High Speed = Ignore
+  Modem Low Speed = Ignore
+  On Line
+
+[KEYBOARD]
+  Typewriter Keys
+  Caps Lock
+  Key Repeat
+  Keyclick Off
+  Margin Bell Off
+  Warning Bell High
+  Character Mode
+  X BS/BS
+  Local Compose
+  Ignore Alt
+  Fkeys, Definitions
+  Program Function Keys
+  Danish Keyboard
+
+[GLOBAL]
+  S1=Comm1
+  Screen Saver
+  Comm1=RS-232
+  Printer Shared
+  Setup=English
+</pre></div></div></body></html>

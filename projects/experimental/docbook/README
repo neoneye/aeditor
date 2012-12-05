@@ -1,0 +1,5 @@
+It would be awesome to have a lightweight console program
+that is able to convert docbook to pdf/html.
+Without any big dependencies.. it should be standalone.
+
+Also SVG support would be good.

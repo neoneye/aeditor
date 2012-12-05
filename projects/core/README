@@ -1,0 +1,117 @@
+AEditor - programmers editor for unix
+
+homepage
+http://aeditor.rubyforge.org/
+
+bug reports
+http://rubyforge.org/tracker/?atid=149&group_id=18&func=browse
+
+feature requrests
+http://rubyforge.org/tracker/?atid=152&group_id=18&func=browse
+
+mailinglist
+http://rubyforge.org/mailman/listinfo/aeditor-talk
+
+
+
+What is Aeditor ?
+=================
+
+AEditor is a programmers editor for unix. It relies on Ncurses.
+Its capable of: Folding, blocking, Macros, Undo/Redo...etc.
+There is a huge testsuite (415 tests), so it should be stable.
+However it lacks some things and consumes lots of memory. 
+Its written entirely in Ruby, so the code should be very easy
+to grasp and extend, kind of Emacs with Ruby.
+
+
+Future plans
+============
+
+AEditor is a rival to scintilla. It is meant to be
+embedded into other applications, eg: FreeRIDE.
+AEditor aims at becoming the best tool for pair-programming.
+
+I have done some experiments making GUI frontends for
+foxtoolkit and qt. These are written in C++ and embeds the Ruby 
+interpreter inside. This isn't my primary focus, if anyone wants
+to help then please do.
+
+Because its written entirely in Ruby, there should be no
+problems in making it fully scriptable in Ruby too. 
+Imagine writing editor-macros in Ruby ;-)
+
+My primary focus is to finish the regexp engine, so that
+AEditor can get some nice syntax coloring. I want to use
+perl6 regexp syntax everywhere in this project.
+
+
+
+Report Bugs 
+===========
+
+Help others, tell me whats wrong.
+
+File a bug report (requires rubyforge account) 
+http://rubyforge.org/tracker/?atid=149&group_id=18&func=browse
+
+or mail me directly
+Simon Strandgaard <neoneye@adslhome.dk>
+
+
+
+Feature Requests
+================
+
+There is room for improvement.
+
+File a feature report (requires rubyforge account)
+http://rubyforge.org/tracker/?atid=152&group_id=18&func=browse
+
+or mail me directly
+Simon Strandgaard <neoneye@adslhome.dk>
+
+
+
+Ncurses Notes
+=============
+
+The only usable frontend for AEditor so far, is 
+Ncurses (GUI frontends is in an experimental stage).
+
+You migth want to set the $ESCDELAY environment variable,
+in order to get instant response from the Escape key.
+Ncurses defaults value is 1000 ms... too long, I would say.
+Therefore:   setenv ESCDELAY 100
+On certain terminals (xterm). If you set the value too low, 
+you may get trouble reading the status of the arrow-keys!
+
+
+Mac Notes
+=================
+
+[15-Sep-2003]
+I visited my friend Johan Gade which uses MacosX, we 
+installed Ruby + ruby-ncurses + AEditor. The termtype 
+is 'dtterm' I never hear about this before. Ncurses
+did not deal with the keybindings for F1-F4,
+pageup/pagedown, home/end. I cannot do anything about
+it, this is a Ncurses issue.
+
+[10-Aug-2003]
+Terminal.app & iTerm 0.7.0 doesn't like using the function keys.
+iTerm 0.7.6 handles them just fine, see:
+http://rubyforge.org/forum/forum.php?thread_id=132&forum_id=156
+
+
+Credits
+=================
+
+ruby-talk.org / comp.lang.ruby
+
+
+License
+=================
+
+Ruby's license.  You are welcome to use it in commercial
+applications, if just credit goes to AEditor-project!

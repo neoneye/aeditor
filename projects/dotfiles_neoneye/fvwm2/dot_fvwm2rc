@@ -1,0 +1,306 @@
+# This is my  "$HOME/.fvwm2/.fvwm2rc"  file
+
+DefaultFont -misc-fixed-medium-r-semicondensed-*-12-*-*-*-*-*-*-*
+WindowFont  -misc-fixed-medium-r-semicondensed-*-12-*-*-*-*-*-*-*
+IconFont    -misc-fixed-medium-r-semicondensed-*-12-*-*-*-*-*-*-*
+
+ColormapFocus FollowsMouse
+OpaqueMoveSize unlimited
+
+SnapAttraction 10 10
+SnapGrid 1 1
+
+DeskTopSize 4x1
+Key F1 A C FlipPage 0 0
+Key F2 A C FlipPage 1 0
+Key F3 A C FlipPage 2 0
+Key F4 A C FlipPage 3 0
+
+EdgeResistance 10 10
+EdgeScroll 100 100
+ClickTime 150
+
+# http://www.fvwm.org/documentation/faq/#5.5 
+IgnoreModifiers L25
+
+# Use an arrow rather than the `X` cursor on the root window.
+CursorStyle root top_left_arrow
+
+# menu style
+MenuStyle * Font -misc-fixed-*-*-*-*-20-*-*-*-*-*-*-*
+MenuStyle * ActiveFore white
+MenuStyle * VerticalItemSpacing, VerticalTiTleSpacing               
+MenuStyle * TrianglesSolid, Hilight3DOff, Animation, \
+    SeparatorsShort, AutomaticHotkeysOff, TitleUnderlines0
+MenuStyle * BorderWidth 0
+
+# menu colors
+MenuStyle * Foreground grey, Background black            # the normal foreground and background colors
+MenuStyle * MenuFace VGradient 128 black rgb:11/11/33    # reset the background with a gradiant
+MenuStyle * ActiveFore white                             # the highlight text color
+MenuStyle * HilightBack rgb:11/11/55                     # the highlight background color
+            
+# Window styles and colors
+#-------------------------
+ColormapFocus FollowsMouse
+TitleStyle LeftJustified
+
+GlobalOpts ClickToFocusRaises
+
+
+##
+## Blue/Purple Style
+##
+#TitleStyle (HGradient 200 rgb:55/55/66 rgb:33/33/66) (-- Flat)
+## Active Titlebar text color
+#Style * HilightFore white
+## Active Window handle color
+#Style * HilightBack rgb:55/55/66
+
+##
+## Alternate
+##
+TitleStyle (VGradient 200 rgb:00/00/00 rgb:00/00/00) (-- Flat)
+# Active Titlebar text color
+Style * HilightFore green
+# Active Window handle color
+Style * HilightBack rgb:55/55/66
+
+
+# default styles for every window
+Style * ResizeOpaque
+Style * Icon xlogo32
+Style * BorderWidth 0
+Style * HandleWidth 1
+Style * DecorateTransient
+Style * IconBox -132 110 -8 -8
+Style * ClickToFocus
+
+#Style mozilla NoFuncHint, NoDecorHint, NoTitle
+
+
+# Specific Program Styles
+#------------------------
+Style "Fvwm*"           NoHandles, NoIcon, NoTitle, Sticky
+Style "Fvwm*"           WindowListSkip, BorderWidth 0
+Style "FvwmPager"       StaysOnTop, BorderWidth 1
+Style "xconsole"        NoIcon, Sticky, BorderWidth 1
+Style "XMMS*"           NoTitle,  WindowListSkip, CirculateSkipIcon, CirculateSkip
+Style "xbuffy"          NoTitle, StaysOnTop, WindowListSkip, NoHandles, Sticky
+Style "xclock"          NoTitle, StaysOnTop, WindowListSkip, NoHandles, Sticky
+Style "xdkcal"          NoTitle, StaysOnTop, Sticky
+Style "xine"            NoHandles, NoTitle
+Style "mplayer"         NoHandles, NoTitle
+
+# for the root window:
+Mouse 1 R  A Menu Programs Nop
+Mouse 2 R  A Exec xill
+Mouse 3 R  A MyTerm
+
+Mouse 1 T     A Move
+Mouse 2 FSIT  A Menu Window-Ops2 Nop
+Mouse 3 TSIF  A Menu Window-Ops2 Nop
+
+Mouse 1 A  M MyMove
+Mouse 2 A  M Close
+Mouse 3 A  M MyResize
+
+Mouse 1 T        A       Move
+Mouse 2 T        A       Move
+Mouse 3 T        Menu    Window-Ops2
+
+Key F4    A  M Close
+Key Z     A  M Iconify
+Key A     A  M Maximize
+Key F11   A  M Pick UnmaximizeFullScreen
+Key F12   A  M Pick MaximizeFullScreen
+Key Tab   A  M WindowListFoo
+Key Q     A  M RaiseLower
+Key Down  A MC Scroll 0 100
+Key Up    A MC Scroll 0 -100
+Key Left  A MC Scroll -100 0
+Key Right A MC Scroll 100 0
+
+Key M     A MC Exec mozilla
+Key W     A MC Exec worker
+Key L     A MC Exec xlock
+Key K     A MC Exec xkill
+Key P     A MC Exec pon
+Key O     A MC Exec poff
+
+Key V     A M StartAppIconic nedit
+
+# goto fullscreen, disable decorations
+DestroyFunc MaximizeFullScreen
+AddToFunc   MaximizeFullScreen
++ I Style $n NoTitle, NoHandles, BorderWidth 0
++ I UpdateStyles
++ I WindowId "$w" Maximize true
+
+# goto window mode, enable decorations
+DestroyFunc UnmaximizeFullScreen
+AddToFunc   UnmaximizeFullScreen
++ I WindowId "$w" Maximize false
++ I Style $n Title, Handles, BorderWidth 5
+
+AddToFunc WindowListFoo
++  "I" WindowList CurrentPage
+
+AddToFunc InitFunction
++  "I" Module FvwmPager 0 0
+
+
+AddToFunc RestartFunction
++  "I" Module FvwmPager 0 0
+
+
+# Menu for the left corner of windows
+AddToMenu Window-Ops2   
++  "Iconify"       Iconify
++  ""              Nop
++  "Move"          Move
++  "Size"          Resize
++  "Max"           Maximize 100 100
++  "Vertical Max"  Maximize 0 100
++  ""              Nop
++  "Raise"         Raise 
++  "Lower"         Lower
++  ""              Nop    
++  "Close"         Close
++  "Delete"        Delete
++  "Destroy"       Destroy
++  ""              Nop   
+
+AddToMenu Xterms 
++  "xterm"         MyTerm
++  "rxvt"          Exec rxvt -fg green -bg black +sb
+
+AddToMenu sound
++  "xmms"          Exec xmms
++  "aumix-curses"  Exec xterm -geometry 76X9 -bg black -fg green -e aumix -C
++  "aumix-gtk2"    Exec aumix
++  " "             Nop
++  "audacity"      Exec audacity
++  "gnoise"        Exec gnoise
+
+AddToMenu graphics
++  "gimp"          Exec gimp
++  "sodipodi"      Exec sodipodi
++  "gqview"        Exec gqview
+
+AddToMenu internet
++  "mozilla"       Exec mozilla
++  "sylpheed"      Exec sylpheed
++  "pan"           Exec pan
+
+AddToMenu typesetting
++  "gvim"          Exec gvim
++  "nedit"         Exec nedit
++  "gv"            Exec gv
++  "abiword"       Exec abiword
+
+AddToMenu filemanagement
++  "worker"        Exec worker
+
+AddToMenu Programs      
++  "commands"      Title
++  "xterm"         MyTerm
++  " "             Nop
++  "internet"      Popup internet
++  "manage files"  Popup filemanagement
++  "typesetting"   Popup typesetting
++  "sound"         Popup sound
++  "graphics"      Popup graphics
++  " "             Nop
++  "xlock"         Exec xlock
++  "restart"       Restart /s/fvwm2/bin/fvwm2
+#+  "quit"          Quit
+
+AddToFunc ShowPager
+
+AddToFunc MyBrowser 
++  "I" Exec galeon || \
+   mozilla-firebird || \
+   MozillaFirebird || \
+   firefox || \
+   mozilla || \
+   netscape
+
+AddToFunc MyTerm 
++  "I" Exec xterm -sl 1000 +sb
+
+AddToFunc Move-or-Raise         
++  "I" Raise  
++  "M" Move
++  "D" Lower
+
+AddToFunc Maximize-Func
++  "C" Maximize     0 100
++  "D" Maximize     100 100
+
+AddToFunc Move-or-Iconify       
++  "I" Raise
++  "M" Move
++  "D" Iconify
+
+AddToFunc Resize-or-Raise       
++  "I" Raise
++  "M" Resize
++  "D" Lower
+
+AddToFunc Iconify-and-Raise     
++  "M" Iconify
++  "M" Raise
+
+AddToFunc Move-or-Lower         
++  "M" Move
++  "C" Lower  
++  "D" RaiseLower
+
+AddToFunc Resize-or-Lower       
++  "M" Resize
++  "C" Lower
++  "D" RaiseLower
+
+AddToFunc MyMove   "I" Move
+AddToFunc MyResize "I" Resize
+
+AddToFunc RaiseAndFocus
++ I Focus
++ I Raise
+
+DestroyFunc FlipPage
+AddToFunc FlipPage 
++  "I" GotoPage $*
++  "I" All (CurrentPage) RaiseAndFocus
+#+  "I" All (CurrentPage) Focus
+#+  "I" Current (CurrentPage) Focus
+#+  "I" Current (CurrentPage) Focus NoWarp
+#+ "I" Next (CurrentPage !Iconic AcceptsFocus) Raise
+#+  "I" Current [CurrentPage] Raise
+#+  "I" Current [CurrentPage] Focus
+
+
+AddToFunc GotoPageAndActivate
++ I  Raise
++ I  All (!Sticky) MoveToPage $*
++ I  GotoPage $*
+
+#+ I GotoPage $*
+#+ I Current (CurrentPage) Break
+#+ I Prev (CurrentPage !Sticky !Iconic) RaiseAndFocus
+
+
+*FvwmPagerRows 1
+*FvwmPagerGeometry -1-1
+*FvwmPagerDeskTopScale 48
+*FvwmPagerFont "none"
+*FvwmPager: Fore rgb:3/3/3 #desktop borders
+*FvwmPager: Back black
+*FvwmPager: WindowColors black rgb:1/1/6 black rgb:1/1/a
+*FvwmPager: Hilight rgb:2/2/2
+*FvwmPager: SolidSeparators
+*FvwmPager: SmallFont "6x10"
+*FvwmPager: WindowLabelFormat ""
+
+AddToFunc InitFunction "I" Exec xsetroot -solid rgb:50/50/90

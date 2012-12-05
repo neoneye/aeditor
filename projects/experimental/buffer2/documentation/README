@@ -1,0 +1,11 @@
+h2. How To Write
+
+seems like the favourite layouts are: 
+# what the system is for.
+# workflow. 
+# inputs. 
+# outputs. 
+# description of each component from lowest to highest.
+This chapter always start with a diagram of the layers in 
+the system it also shows the inter-layer connections between 
+components.

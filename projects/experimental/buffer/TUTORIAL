@@ -1,0 +1,120 @@
+AEditor Tutorial
+================
+
+If you have any requests for new fancy keybindings..
+please contact me.
+
+
+Common Keybindings
+==================
+
+
+CURSOR
+
+ CTRL-L        Goto line
+ CTRL-M        Jump to matching parentesis
+ CTRL-Left     Prev word
+ CTRL-Right    Next word
+ CTRL-PgUp     Goto Top
+ CTRL-PgDn     Goto Bottom
+ F4            Incremental centering
+ Left          Move left
+ Right         Move right
+ Up            Move up
+ Down          Move down
+ PgUp          Move a page up
+ PgDn          Move a page down
+ Home          Move to indentation point / move to line begin
+ End           Move to line end
+
+
+
+EDIT (keymap = cua)
+
+ CTRL-X        Cut selection to clipboard
+ CTRL-C        Copy selection to clipboard
+ CTRL-V        Paste text from clipboard
+ Backspace     Remove left letter / Remove selection
+ Delete        Remove right letter / Remove selection
+ Enter         Break line
+ Tab           Indent line
+ Left          Move cursor left
+ Right         Move cursor right
+ Up            Move cursor up
+ Down          Move cursor down
+ F10           Record/Stop 
+ F11           Play Macro
+
+
+
+EDIT (keymap = simon)
+
+ CTRL-X        Cut selection to clipboard
+ CTRL-C        Copy selection to clipboard
+ CTRL-V        Paste text from clipboard
+ Backspace     Remove left letter 
+ Delete        Remove right letter
+ Enter         Break line
+ Tab           Indent line
+ SHIFT-Left    Unindent line / Unindent selection
+ SHIFT-Right   Indent line / Indent selection
+ SHIFT-Up      Exchange with line above
+ SHIFT-Down    Exchange with line below
+ F5            Selection on/off  (turn off copies to clipboard)
+ F6            Paste from clipboard
+ F7            Kill selection
+ F10           Record/Stop 
+ F11           Play Macro
+
+
+
+SEARCH
+
+ CTRL-F        Find text
+ CTRL-R        Replace text
+ F3            Repeat search
+ F9            Jump to next bookmark
+ CTRL-B        Insert/Remove Bookmark
+
+
+
+OTHER
+
+ CTRL-Z        Undo
+ CTRL-SHIFT-Z  Redo
+ Esc           Return to normal mode (turn off selectionmode)
+ F1            [ debug - inspect aeditor internals ]
+
+
+
+BUFFERS
+
+ CTRL-O        Open File
+ CTRL-S        Save File
+ CTRL-1        Switch to 1st buffer
+ CTRL-2        Switch to 2nd buffer
+ CTRL-3        Switch to 3rd buffer
+ F12           Next Buffer
+ SHIFT-F12     Prev Buffer
+ CTRL-W        Close Buffer
+ CTRL-N        New Buffer
+
+
+
+VIEW
+
+ F8            Fullscreen / Window mode
+ CTRL-Q        Quit
+
+
+
+Authors Last Words
+==================
+
+Tell me what you like/dislike about AEditor, so
+I can improve it. I am very willing to help you if you
+have any problems.
+
+My mail adress is <neoneye@adslhome.dk>
+
+Thanks for using AEditor.

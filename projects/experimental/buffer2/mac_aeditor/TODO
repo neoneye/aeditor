@@ -1,0 +1,29 @@
+backspace of the last letter in the file.. isn't working.
+
+
+Cocoa's drawInRect seems to behave odd when y is negative.
+It appears as if the first row of text is rendered on a wrong line (ugly).
+If this is what I think it is.. then I may have more luck using
+drawAtPoint.
+
+
+clean up calculation of position.x to pixel.x,
+and calculation of position.y to pixel.y.
+(so that scrollToCaret can use same offsets as the render code).
+
+
+selections.
+
+
+support for multicolor fonts. Eventually with
+a fallback font for non-ascii glyphs. 
+
+
+caching of the rendered lines, because
+rendering is very slow.
+
+
+canvas background effects such as:
+* transparency.
+* blur.
+* images.

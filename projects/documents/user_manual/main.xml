@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE article
+    PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN"
+        "http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd" [
+	<!ENTITY header SYSTEM "header.xml">
+	<!ENTITY overview SYSTEM "overview.xml">
+	<!ENTITY todo SYSTEM "todo.xml">
+]>
+<!-- $Id: main.xml,v 1.1 2003/08/19 18:28:03 neoneye Exp $ -->
+<article>
+&header;
+&overview;
+&todo;
+</article>

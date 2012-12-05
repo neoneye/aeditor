@@ -1,0 +1,65 @@
+Garbage collector problems
+
+Note: I assume you know basic facts about the C stack, I'm using the x86
+stack (continous, grows downwards) as a reference
+
+The Ruby GC scans the C stack for heap pointers to find live references to
+Ruby objects in C code.
+The problem is that the area of the C stack doesn't get detected correctly.
+Usually it makes no difference - all the references stay inside that area
+anyway.
+But when embedding Ruby, things get a little bit different.
+
+The stack base gets set when you first call ruby_init() (calling Init_stack
+somewhere) or when the current stack pointer is higher than the current stack
+base.
+This almost always suffices, because ruby_init() gets called at the top
+level of your program, usually main(), so the stack base gets set high enough
+to find any references that are held in procedures called by main().
+
+But let's look at another (imaginary) case - a Ruby extension for PostgreSQL
+that embeds Ruby.
+
+Lets say that ruby_init() gets called by PostgreSQL while initalizing it's
+extensions. The extension finding procedure is very complex, so it has
+accumulated a lot of stack.
+
+Stack diagram ahead (stack grows leftwards)
+
+ruby_init() --- some_proc() --- some_proc() --- load_ext() --- main()
+
+^^^ Now, the stack base gets set here.
+
+After a while, it falls back to main()-level select(), a request arrives and
+immediately Ruby has to execute code, this time with low stack overhead.
+
+............................... ruby_stuff() --- request() --- main()
+
+^^^ Stack base is still here
+
+ruby_stuff() holds a lot of references to Ruby objects and allocates more
+memory, so after a while the garbage collector gets called. The stack base
+gets fixed up according to the rule above.
+
+................... ruby_gc --- ruby_stuff() --- request() --- main()
+
+                        ^^^ Stack base moved here
+
+What is wrong with this situation? Well, the stack base gets moved BEFORE
+ruby_stuff(), and stack references held by ruby_stuff() don't get scanned!
+So when the garbage collector gets called, it sweeps objects that are still
+held by ruby_stuff()!
+
+I tested this using http://slowbyte.colony.ee/ruby/boom.c and it seems that
+I'm right, at least it segfaults when I do the steps I described above. I
+also extended the GC a bit and it shows that it really doesn't scan the
+ruby_stuff() area :) (Yes, boom.c is a hack, but this could happen in real
+life :)
+
+So what's my point? How to fix this? I don't know :) I'm just trying to warn
+all the people that embed Ruby. Please call ruby_init() in main() so the GC
+can find your objects :)
+
+-Jaen Saul aka SlowByte
+http://slowbyte.colony.ee/
+http://jaen.saul.ee/

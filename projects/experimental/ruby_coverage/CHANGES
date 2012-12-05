@@ -1,0 +1,23 @@
+29-december-2005 Neoneye
+*  Alex Pooley posted a patch to eliminate a warning.
+
+14-april-2004 Neoneye
+*	post-install notice added.
+
+30-march-2004 Neoneye
+*	better way to substitute into heredoc, while preserving whitespace.
+
+22-march-2004 Neoneye
+*	version 0.2 released.
+*	sidebar can be specified, by creating a file 
+	named 'coverage.sidebar'. 
+*	avoid absolute names.
+*	output to the local dir 'coverage'.
+*	XHTML1.0 strict.
+
+21-march-2004 Neoneye
+*	version 0.1 released.
+*	prepared to make a release of 'coverage.rb'
+*	While reading on the rubygems mailinglist I saw that batsman had
+	a patch to coverage. I have committed it.  Thanks batsman.
+	It can now show percentages in the index.html file.

@@ -1,0 +1,81 @@
+<section id="custom">
+<title>Customization and Presets</title>
+<para>Its a black art to choose settings which is sensible.
+</para>
+
+<section>
+<title>Key Bindings</title>
+<para>I prefer using the F1-F12 keys for the most common operations.
+</para>
+
+<section>
+<title>Execute BackwardForward</title>
+<para>Many operations can be applied both forward and backwards on
+the buffer, for instance search operations such as <command>jump-to-next-error</command>.
+F8 = execute backwards. F9 = execute forwards.</para>
+
+<para>Why did I choose these 2 keys, because they are easy to reach with the
+right hand (Im righthanded). If I had chosen F10 or F11 I would have
+to count number of keys. I believe <command>execute</command> is a very
+important operation.</para>
+
+<para>There is operations which you may wish to perform, again and again: 
+<command>play-macro</command>,
+<command>search</command>,
+<command>replace</command>,
+<command>goto-next-bookmark</command>,
+<command>goto-next-error</command>.
+We need a popup menu where we can choose among these operations, for instance F10.
+When this popup is open and we continue pressing F10 then we can cycle through
+the available operations. We hit ENTER to choose the operation and the window
+closes.</para>
+</section>
+
+</section>
+
+<section>
+<title>Dotfiles</title>
+<para>Configuration at different levels.
+</para>
+
+<section>
+<title>Dotfile In Homedir</title>
+<para>The dotfile describes how the global settings should be like,
+such as: look and feel, keybindings, plugins.
+How should such file be like?
+</para>
+<screen>type_ruby = mk_type("Ruby") do |type_matcher|
+	type_matcher.suffix(".rb", "normal ruby file")
+	type_matcher.suffix(".rbx", "mod-ruby")
+end
+with(type_ruby) do
+	use_lexer("lexer_ruby") do |lexer|
+		lexer.lines_lookback(40)
+		lexer.heredoc_lexer("EORUBY", "ruby")
+		lexer.heredoc_lexer("EOHTML", "html")
+		lexer.heredoc_lexer("EOCSS", "css")
+		lexer.heredoc_lexer("EOXML", "xml")
+	end
+	tabsize = 2
+	wordwrap = false
+end
+look_and_feel do 
+	theme = "white_on_black"
+	animate_vscroll = 5
+	animate_fold_collapse = 3
+end
+</screen>
+</section>
+
+<section>
+<title>Dotfile Per Project</title>
+<para>Sometimes its necessary to follow your companys styleguide,
+which describes: indentation, comment-style.
+When these settings is different from your prefered style, 
+then its useful to have a local configuration for that project.
+</para>
+</section>
+
+</section>
+
+</section>

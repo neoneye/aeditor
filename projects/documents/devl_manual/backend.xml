@@ -1,0 +1,172 @@
+<section id="backend">
+<title>The Backend</title>
+<para>placeholder.
+</para>
+
+<section>
+<title>Synopsis</title>
+<para>placeholder.
+</para>
+</section>
+
+<section>
+<title>List of Chunks</title>
+<para>AEditors does not use the famous "Gap principle", it
+uses something else. The "Gap principle" trends to result
+in a dirty, but efficient data-structure. I want a data-structure
+which is more in the OOP spirit, and which is also relative
+efficient. 
+</para>
+<para>AEditor uses a mix between the gap principle and 
+a linked list, but is has no gap. I call it 'list of chunks'. 
+A chunk is an allocation of a number of consecutive text 
+elements (4 bytes each). This way it feels like a linked 
+list. But it consumes less memory (Becasue the pointers
+between adjacent elements is gone).
+</para>
+<para>Iteration-2 of AEditor used this principle.
+The Ruby implementation (Iteration-3) doesn't yet use this
+princitple. I will have to make a c++ storage class for it,
+which I can access from Ruby.
+</para>
+<para>TODO: Insert figure here which illustrates how
+chunks is working.
+</para>
+</section>
+
+<section>
+<title>Model/View Seperation</title>
+<para>Multiple views per buffer can sometimes be useful.
+For instance: In one view you want to see the buffer hilited as 
+XML-DocBook. The second view you want to see it as SGML-DocBook.
+What features should the view be responsible of and what should
+the buffer do. Lets consider how the ideal editor should be.</para>
+<para>The view should be responsible for: Wordwrap, hiliting, folding.
+</para>
+<para>The model should be responsible for: regex...
+</para>
+<para>Undo/Redo is in a grey area between view/model. How does 
+other editors treat undo/redo in cases where there are multiple
+views? Good question.</para>
+<itemizedlist>
+<listitem><para>The simple solution could be to only permit
+changes from one view and let the other views be readonly.
+</para></listitem>
+<listitem><para>
+Some editors provides a split-view of the buffer, which shares
+the same undo-stack. So if view#1 is active you can undo/redo
+changes in view#2 and the other way around. There is a constraint 
+that all the views MUST be in the same window, otherwise the
+invoking undo/redo will have sideeffects in other windows.
+Doing things in windows which hasn't focus would make it
+user-hostile. Thus view-in-same-window == user-friendly.
+In those editors I tried (vim, uedit, textpad), changing 
+tabsize/language then all views were affected by the change.
+</para></listitem></itemizedlist>
+<para>Is there any nice solutions for this undo/redo problem ?
+What if we want to allow 2 people to work on the same document
+over the internet. How should undo/redo work then?
+</para>
+<para>As you can imagine this gets very complicated. So far I have
+assumed one-view per model, in order to learn how to construct 
+an editor and still keeping it simple. But it is getting closer
+and I am considering support for multiple buffers more and more. 
+I think one of the keys in order to solve it is to use the iterator 
+pattern.</para>
+</section>
+
+<section>
+<title>Strategies of editing</title>
+<para>There are many different kinds of elements which
+can occur in a document: tabs, folds, markers, control-symbols, 
+virtual-space, etc..  Each element requires a specific strategy 
+for how the element can be edited.
+</para>
+<para>Further more there is a number of option where the
+user can customize how he/she prefer things to behave.
+Example: cursor_through_tabs, cursor_after_eol, tab_size.
+</para>
+</section>
+
+<section>
+<title>Markers</title>
+<para>Bookmarks, syntaxhiliting goes also here.
+</para>
+<para>Inserting a mark in the middle of a TAB, results
+in space-padding. Inserting a mark after EndOfLine, also
+results in space-padding. Insertion of markers can be 
+destructive in some cases.. Fix me.
+</para>
+<section>
+<title>Markers inside TABs</title>
+<para>If the cursor is located in the middle of a TAB
+and you insert a bookmark, should we then insert the
+TAB at the cursor position or at the begining of the TAB?
+</para>
+<para>The current design allows for insertion of marks
+inside TABS. It simple convert the TAB into spaces,
+which is incorrect behavier!  Markers should not be 
+destructive in this way. For now I can live with it,
+but I will need to change this.
+</para>
+<para>Another solution could be to inject a decorator
+which points at the X position where the mark are.
+</para>
+</section>
+<section>
+<title>Markers after EndOfLine</title>
+<para>This has dramatic consequences. I doubt that it is
+worth supporting, but if I should implement it, then how
+should I do it?</para>
+<para>I will require an Array of markers which is 
+located after EOL. Besides the BufferObject::Newline, it 
+is probably necessary with an BufferObject::EOL instance.
+This EOL class should keep track of markers.
+Why is a EOL class necessary ? Because the last line
+in the file doesn't have to be terminated with a newline,
+thus a EOL is more appropriate.
+</para>
+</section>
+<section>
+<title>Markers and Word-wrap</title>
+<para>The <application>Scite</application> editor can
+toggle a line-mark by simply pressing F2. But the concept
+of having a mark-indicator at the left side, doesn't 
+works when you work with word-wrap.
+</para>
+<para>You will need to put the marker under the cursor.
+</para>
+</section>
+</section>
+
+<section>
+<title>Folding</title>
+<para>Talk about the consequences of folding.
+</para>
+</section>
+
+<section>
+<title>Unicode</title>
+<para>Right now there is no support for unicode.
+</para>
+<para>I want to internally use UCS-4 representation of
+each character. I have not decided how to deal with
+combining characters, so I think I wait. Anyway at some 
+time I will have to rewrite AEditor from scratch.
+So starting with supporting level 1 of UCS-4 seems to
+be a good idea.
+</para>
+<para>I have done some experiments with UTF-8 convertion:
+encoding, decoding. Easy.
+</para>
+</section>
+
+<section>
+<title>Undo/Redo/Macros</title>
+<para>I really need a memento class which can take
+a snapshot of a range of lines. Taking full snapshots
+is terrible slow. Unicode is more important, therefore
+this has to wait until unicode is added.
+</para>
+</section>
+</section>

@@ -1,0 +1,13 @@
+{
+    IBClasses = (
+        {
+            ACTIONS = {eval = id; }; 
+            CLASS = EvalController; 
+            LANGUAGE = ObjC; 
+            OUTLETS = {evalField = NSTextField; output = NSTextView; }; 
+            SUPERCLASS = NSObject; 
+        }, 
+        {CLASS = FirstResponder; LANGUAGE = ObjC; SUPERCLASS = NSObject; }
+    ); 
+    IBVersion = 1; 
+}

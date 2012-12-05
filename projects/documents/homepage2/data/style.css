@@ -1,0 +1,102 @@
+body {
+	font-family: Verdana;
+	background-color: #555;
+	text-align: center;
+	margin: 0px;
+}
+
+.center {
+	margin-left: auto;
+	margin-right: auto;
+}
+
+.logo {
+	text-align: center;
+	font-size: 8pt;
+	white-space: nowrap;
+}
+
+div.page {
+	position: relative;
+	text-align: left;
+	width: 785px;
+	overflow: hidden;
+	padding: 0;
+	background-color: #929292;
+}
+
+.panel {
+	margin: 0;
+	padding: 5px 10px;
+}
+
+div.navigation {
+	width: 200px;
+	clear: none;
+	float: left;
+	/*background-color: blue;*/
+	/*height: 100%;*/
+}
+
+ul.navigation {
+	font-weight: normal;
+	padding-left: 10px;
+	padding-bottom: 200px;
+	margin: 0px;
+}
+
+li.navigation {
+	list-style-type: none;
+	font-size: 20px;
+	margin: 5px 5px;
+}
+
+ul.features {
+	padding-left: 0px;
+	margin: 0px;
+}
+
+li.feature {
+	list-style-type: none;
+	font-weight: bold;
+	padding-bottom: 10px;
+}
+
+li.desc {
+	list-style-type: none;
+	font-weight: normal;
+}
+
+a {
+	color: black;
+}
+
+a:hover {
+	color: white;
+}
+
+.selected {
+	color: white;
+	font-weight: bold;
+}
+
+div.content {
+	font-size: 14px;
+	/*padding-left: 10px;*/
+	padding-right: 10px;
+	width: 535px;
+	
+	float: left;
+	clear: none;
+	/*border: 1px solid black;*/
+	background-color: #999;
+	border-left: 1px solid #7a7a7a;
+	border-right: 1px solid #7a7a7a;
+}
+
+div.content h1 {
+	font-size: 24px;
+}
+
+.shot {
+}

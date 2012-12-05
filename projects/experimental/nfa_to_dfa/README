@@ -1,0 +1,165 @@
+Implementation of regular expressions in AEditor
+2003, Simon Strandgaard
+
+About
+=====
+
+Goal is to be fully compatible with Ruby's regex syntax.
+
+
+
+Resources
+=========
+
+1)  How to do the most basic regex operations:
+    http://www.regular-expressions.info/
+    http://linux.skavt.net/teach_perl_in_21days/ch7.htm
+    man 7 re_format
+
+2)  Unicode and regex issues:
+    http://www.unicode.org/unicode/reports/tr18/
+
+
+
+Terminologi
+===========
+
+PCRE         Perl Compatible Regular Expressions
+RE           Regular Expression
+Epsilon      A transition without symbol (empty)
+
+
+
+RE Rules
+========
+
+fundemental operators:
+ a           single letter
+ e           epsilon (empty string)
+ st          concatenation
+ s|t         or
+ s*          zero or more
+ (...)       grouping
+
+composite operators (shorthands):
+ (r|s)|t     r|s|t = r|(s|t)
+ s|t         t|s
+ s?          s|e
+ (rs)t       rst = r(st)
+ se          es
+ r(s|t)      rs|rt
+ (r|s)t      rt|st
+ (s*)*       s* = s*s* = s{0,}
+ ss*         s+ = s*s  = s{1,}
+ [r-t]       r|s|t = [rst] =  character class
+ [r-tR-T]    r|s|t|R|S|T
+ s{n}        s must occur exactly n times
+ s{n}*       match zero or more n-multiplum of s 
+ s{n}+       match one or more n-multiplum of s 
+ s{n,m}      the occurence of s must be within the range
+ s{n,}       match least n occurencies
+ s{,m}       match maximum m occurencies
+ s*?         (lazy) match minimum zero or more times
+ s+?         (lazy) match minimum one or more times
+ s{n,}?      (lazy) match least n occurencies
+
+other operators:
+ [^rst]      circumflex; alphabet except rst
+ .           alphabet, wild-card any letter (except newline!)
+ $           look at the end of the line (insert a EOL symbol)
+ ^           look at the begining of the line (insert a BOL symbol)
+ (?: )       group without creating backref's
+ (?= )       lookahead equal
+ (?! )       lookahead not-equal
+ \1 .. \9    backreference
+ 
+range shorthands:
+ \d          [0-9]    digit
+ \D          [^0-9]   non-digit
+ \s          [\s\t\r\n\f] whitespace
+ \S          [^\s\t\r\n\f] non-whitespace
+ \w          [a-zA-Z0-9] wordletter
+ \W          [^a-zA-Z0-9] non-wordletter
+
+precedens between operators:
+ ()          pattern memory
+ + * ? {}    number of occurrences
+ ^ $ \b \B   pattern anchors
+ |           alternatives
+
+
+AEditor Extensions
+==================
+
+ \%cursor%   place cursor at this position
+ TODO        buffer-traversal: ignore folds
+ TODO        buffer-traversal: how to deal with wordwrap
+ TODO        buffer-traversal: same column as cursor
+ [[:lruby:]] match text which is legal ruby code
+ [[:lcpp:]]  match text which is legal c++ code 
+
+
+How does it work?
+=================
+
+All the magic lies in the choise of data-structure. 
+It uses an alternation-stack, on which we can push
+interesting positions that we want to get back to (later).
+
+It attempts to scan with repeat-count=0, and when it
+reaches end of the regex, then it restarts with repeat-count+=1.
+When a repeat-pattern mismatches it stops incrementing.
+
+When it reaches an AlternationOpen it stores the
+start-positions of each alternation-pattern on the stack.
+If the first pattern were unsuccessful, it restarts with the 
+the next pattern.
+
+
+
+
+Nested patterns
+===============
+
+/x((.)*)*x/.match("0x1x2x3")
+
+
+attempt to match zero times
+x<e>x            -
+
+attempt to match one times
+	x<e>x        -
+	x.x          OK
+	x..x         -
+	x...<P>x     OK
+	x....x       -
+	x.....x      -
+	x......x     -
+	x.......x    end
+
+attempt to match two times
+	x...<e><P>x  OK
+	x....x       -
+	x.....x      -
+	x......x     -
+	x.......x    end
+
+attempt to match tree times
+	x...<e><P>x  OK
+	x....x       -
+	x.....x      -
+	x......x     -
+	x.......x    end
+
+As you can see the outer Group will repeat forever.
+How do I detect this behavier ?
+How do I stop it from occuring ?
+
+If the result we get back from the nested repeat,
+are equal to the former result, then stop.
+This occurs when the above problem is happening.
+
+Further more the nested empty match, are we suppose 
+to ignore. Otherwise we will get our result overwritten
+with empty data. Thus we must keep track of our 
+_good_ results so far.

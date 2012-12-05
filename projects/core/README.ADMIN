@@ -1,0 +1,9 @@
+Things which should be tested before making a file-release:
+
+   1.  all unittests should pass OK
+
+   2.  see if the program is actual starting up
+
+   3.  test on color-terminals / black&white terminals
+
+   4.  test variable width/height:  one column, one row

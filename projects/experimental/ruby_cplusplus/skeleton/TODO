@@ -1,0 +1,25 @@
+What needs to be done?
+The Rubyembed Project
+$Id: TODO,v 1.4 2004/10/09 07:01:35 neoneye Exp $
+
+*	init_stack() must be investigated further.
+
+*	Shared library. lazy loading of the ruby-library.
+
+*	add rule to Makefile.am so that the *.i files 
+	can be SWIG'ed automaticly
+
+*	hide signals.. move signal handling from main.cpp 
+	into library.cpp.
+
+*	Capture all ruby-output. Maybe behave like an 
+	iostream?
+
+*	the "-rdynamic" option for g++, so that we can 
+	require 'stringio'
+
+*	Windows makefiles.
+
+
+People that want notify on version 0.4.
+J.P.Fletcher-at-aston.ac.uk

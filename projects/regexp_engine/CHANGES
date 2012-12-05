@@ -1,0 +1,827 @@
+23-jun-2005 Neoneye
+*	Joseph Harkins pointed out that there is an issue with
+	strings longer than 2000 bytes, which blows the stack.
+	While hunting for this issue I discovered a bug in
+	my lookbehind code.. see the MatchLongScan testcase.
+
+07-sep-2004 Neoneye
+*	version 0.12 released.
+*	enhanced Ruby's builtin Regexp class with a #tree method.
+
+08-june-2004 Neoneye
+*	My FreeBSD machine got messed up..for the last 5 days
+	I have been struggling with Gentoo linux. Finally today
+	I got X11 and KDE working. While installing everything
+	from scratch I noticed that my regexp-engine testsuite 
+	depended heavily on 'test/unit/mock'. I have tweaked it
+	sligthly so tests can be invoked even though that 
+	package is missing.
+
+03-june-2004 Neoneye
+*	UTF-16BE and UTF-16LE encodings are now working.
+
+02-june-2004 Neoneye
+*	version 0.11 released.
+*	wrote a #gsub method which passes all tests.
+*	enhanced the #gsub method so that I got #sub for free.
+
+31-may-2004 Neoneye
+*	wrote a #split method which passes all tests.
+*	wrote a #scan method which passes all tests.
+
+30-may-2004 Neoneye
+*	Wrote tests of String.gsub, String.scan, String.split.
+*	we can now do UTF8 scan for the first time.
+*	refactored the 'abstract_syntax.rb', so that initialization
+	of Inside/Outside are much nicer.
+
+29-may-2004 Neoneye
+*	parser now internally uses Integer's instead of String's,
+	now we are ready for wide-chars.
+
+28-may-2004 Neoneye
+*	scanner now internally uses Interger's instead of String's,
+	now we are almost ready to deal with unicode.
+
+19-may-2004 Neoneye
+*	parser now recognizes \x{123456} as a codepoint.
+
+18-may-2004 Neoneye
+*	added 9 exercises of UTF8 to the 'test/blackbox_p5.rb' file. 
+*	transfered the UTF8 decoder into the Iterator package, where
+	it belongs.
+
+17-may-2004 Neoneye
+*	Initial adoptation of my 10 months old UTF8 iterator.
+*	Attempts to make UTF8 iterator able to move backwards.
+
+15-may-2004 Neoneye
+*	parser now recognizes charclass where octal and hex and escaped
+	values (\n and \a) are being used. It also works within ranges.
+
+14-may-2004 Neoneye
+*	parser now recognizes \n as newline, and \a as bell.
+
+12-may-2004 Neoneye
+*	refactored Alternation class, so that the nasty way of passing
+	Index to children Alternation can be avoided.
+*	the MatchAdvancedPalindrome tests are now working.. this has
+	been broken for ages, because I never realized that the way
+	I was dealing with the extended option was broken.
+
+11-may-2004 Neoneye
+*	added inverse posix character classes [[:^digit:]]  
+	its the same as [^[:digit:]], but are useful when one wants
+	to type more advanced charclasses ala [[:^punct:][:^digit:]].
+*	made 4 rows in rubicon pass OK.. word-boundary problems.
+*	when we meet a parentesis-close we make that capture available,
+	if one attempts to refer to it before its available it will
+	be interpreted as octal. For instance if we annotate the regexp
+	/  (  (  )2  (  )3  )1  (  )4  /  As you can see the captures
+	are appearing in the order:  2  3  1  4.  I didn't dealt with
+	this issue earlier, but now I do.
+*	better way to distinguish between backrefs and octal numbers,
+	which is more compatible with other engines (GNU, Oniguruma).
+*	atomic grouping added..  now you can type (?> ... )
+	Current status of the rubicon testsuite:
+	pass=1517 fail=43 pass/total=97.24%
+
+10-may-2004 Neoneye
+*	added lookahead/behind to the Pretty visitor.
+*	figured out why I had problems with multiple quantifiers inside
+	a lookbehind. This was because the left-most-longest rule was
+	inversed.
+*	Allan Odgaard pointed out that backreferences inside lookbehind
+	are difficult, which of cause isn't supported yet.
+*	Backreferences outside lookbehind refering to a capture inside
+	the lookbehind, didn't work because that the Backref class isn't
+	able to deal with backward iterators. The solution was to let
+	Capture force a convert to forward iterators.
+
+08-may-2004 Neoneye
+*	octal added... now you can type \040 which will match space.
+
+06-may-2004 Neoneye
+*	hex added... now you can type \x20 which will match space.
+*	version 0.10 released.
+*	merged with 'b20040502' branch where lookbehind got implemented.
+*	lookbehind positive are now implemented, its capable of dealing
+	with nested lookbehinds, lookaheads inside lookbehinds, grouping
+	inside lookbehind... it supports variable-width-lookbehind.
+	Other engines are usualy only capable of fixed width lookbehind.
+*	lookbehind negative are now working. 
+*	Analysis of why empty-subcaptures occur inside negative lookahead/behind,
+	this is because the Last node are never reached, therefore a snapshot
+	are never made. A possible solution would be to make that snapshot
+	inside the Context#raise_mismatch method.
+
+02-may-2004 Neoneye
+*	Wrote a bunch of tests which exercises: atomic grouping,
+	possesive quantifiers, lookbehind positive/negative.
+
+30-april-2004 Neoneye
+*	RepeatGreedy#end_match is now preserving the sub-capture whenever
+	its possible, while at the same time being greedy.
+	/()*/ ~= 'abc'         -> ['', '']
+	/()+/ ~= 'abc'         -> ['', '']
+	/(){2,}/ ~= 'abc'      -> ['', '']
+	/a(|)*b/ ~= 'aaabbb'   -> ['ab', '']
+	/a(|ab)*b/ ~= 'ab'     -> ['ab', '']
+	/a(a|)*/ ~= 'aaab'     -> ['aaa', 'a']
+	/a(|ab)*b/ ~= 'aaabbb' -> ['aabb', 'ab']
+	/x(y?)*z/ ~= 'xyz'     -> ['xyz', 'y']
+	/x(y{0,2})*z/ ~= 'xyz' -> ['xyz', 'y']
+	Take a look at the last 4 lines, The oniguruma engine clears
+	the capture[1]. I don't think anyone would desire a cleared
+	register over a filled register.
+
+29-april-2004 Neoneye
+*	Added 'test/blackbox_p6.rb' with 54 tests of perl6 syntax.
+
+27-april-2004 Neoneye
+*	version 0.9 released.
+*	merged with 'b20040426' branch I made yesterday, to refactore the
+	Context.slot allocation system. The behavior has been moved
+	down to the classes which uses the Context.indexes stack.
+*	now #test_lookahead_positive7 passes OK.
+*	made Iterator::Base comparable, so I have removed all comparisons
+	between iterator.position.. so its now simply (i1 <=> i2).
+
+26-april-2004 Neoneye
+*	made example which proofs that I must move the @inputstack
+	from RepeatGreedy/RepeatLazy into Context.
+	assert_regex(["abab", "ab", "ab"], "((?=(.b){2,})a.)*", "ababab")
+	Above test, exercises the @input_stack so that the #end_match
+	method fails to check for endless loop correct. Results in double close.
+*	renamed Context.slots -> Context.indexes.
+*	renamed AssignSlots -> BeginMatch, made this class more generic
+	so that the @succ can decide itself how allocation should be like.
+*	made common ancestor RepeatBase for RepeatGreedy/Lazy.
+*	preparing to refactore the slotallocation mechanism, so the 
+	decition about what to push, gets transfered to the nodes,
+	rather than in the global Context class.
+
+25-april-2004 Neoneye
+*	fixed glitch in MatchData, where I extract a String[range],
+	range.begin=0  and  range.end=-1.. by using slice fixed it.
+	Status is now: pass=1508 fail=52  pass/total=96.666.
+
+23-april-2004 Neoneye
+*	samples/interactive.rb: patch from Botp Peña.  Thanks.
+*	samples/web_interface.rb: Botp Peña gave me some clues for
+	further improvements.
+
+21-april-2004 Neoneye
+*	version 0.8 released.
+*	refactoring of scanner_nodes.rb.
+*	close all input-iterators after usage, see 'test_blackbox_p5.rb'.
+*	merged with 'b2004_04_08' branch, which I have been working on
+	since christmas (4 months of work).
+*	reworked README, FEATURES.
+
+20-april-2004 Neoneye
+*	nested quantifiers are now working.
+*	rubicon now says   pass=1498, fail=62,  pass/total=96.025,
+	Which means that my initial goal of 95% has been fullfilled.
+
+17-april-2004 Neoneye
+*	blackbox_p5 testing is up working again (119 tests),
+	the remaining testcases seems to fall into 2 catogories:
+	A:  typeerror, in the AssignIntegritySlot node. (top priority)
+	B:  nested quantifiers
+*	Thinking about abandoning the integrity-prettyprinting system,
+	and instead rely on the integrity-indexes.
+*	AssignIntegritySlot#set_integrity_slot has been superceded by
+	#assign_integrity_slot, which takes a block, and restores the
+	value afterwards. Much more robust.
+*	Solved the TypeError problem, it was caused because Alternation
+	did not share its @integrity_slot with other alternation nodes.
+	I have made a small hack to make this work.
+
+16-april-2004 Neoneye
+*	preparations for dumping the integrity as a plain array, so
+	that I can reuse my good old blackbox_p5 exercises.
+	At first I thought about distinguishing between if an
+	Alternation was the first of a bigger alternation, if so
+	then I allocated a slot. However with Repeat being recursive
+	this would never work. I had to make up an AssignIntegritySlot
+	class, which allocates and passes a slot to @succ. This
+	will work for all nodes which does branching.
+
+15-april-2004 Neoneye
+*	the new design, unittests for the very basic building 
+	blocks should be in place: Inside#match, Alternation#match, 
+	Repeat#match, Capture#match, Last#match.
+	Now I can move on and start doing blackbox testing.
+
+10-april-2004 Neoneye
+*	I had enough of being at 92.69% completed.. but without getting
+	anywhere. Yesterday I though that it was time to rethink the
+	design, so I did. The fewer lines of code, the fewer bugs.
+	I have reconsidered(and again rejected) to make a virtual-machine,
+	because it seems harder to debug, extend, and if you get
+	illegal opcode then you are screwed. 
+	1ST improvement.  I realized that repeat is too complex
+	a beast, Just for keeping track of repeat while scanning, I have 
+	the following classes:  SharedData, Zero, One, Repeat, RepeatEnd.  
+	With too many entrance and exit points: Zero#path_next, 
+	One#path_next, One#scope_end.  And methods elsewhere which deals 
+	with repeat: #visit_repeat, #visit_repeat_end, #activate_next.
+	With such setup its no wonder that I have problems with nested
+	quantifiers. By managing memento'es slightly different, we
+	should be able merge the Zero with the One classe, and that
+	may hopefully be easier for me to comprehend.
+	2ND improvement is to let Scanner::Alternation only choose 
+	between 2 roads, rather than the old design where I had to 
+	maintain an index of which roads I already had been taking. 
+	When there is an /a|b|c|d/ we just translate it into many
+	instances "alt(a, alt(b, alt(c,d)))".
+	I think this is 5th time I re-design from scratch.
+	A good rules when dealing with backtracking:
+	reduce number of choices, if many choices then its better
+	to split them up into recursive a-or-b choices.
+
+03-april-2004 Neoneye
+*	When an exception is raised inside the scanner, is now being
+	attached extra information in the #check_integrity method.
+	So that it is easier to figure out where the problem is.
+
+29-march-2004 Neoneye
+*	fixed bug in ProxyLast#clone and ProxyLast#==(other).
+*	QuantifierBase#push_choice factory method added, which
+	makes creating of Zero/One's more robust.
+*	BacktrackingOperations::Base#check_invariant added, and
+	is being invoked by ScannerVisitor#push_choice before
+	the instance is appended to history_stack.
+
+28-march-2004 Neoneye
+*	HistoryStack#has_incomplete_children? is making both
+	#test_repeat_nested10 and #test_has_incomplete_children
+	pass OK. However most of the other blackbox testcases
+	which exercises nested repeat fails (15 errors). How should I
+	approach this problem?  I think I should take a look
+	at one of the failing testcases and try to figure out
+	the reason it is failing. Besides that the method
+	#has_incomplete_children?  should be implemented by now.
+	Bommmer I just discovered that the #has_incomplete_children? 
+	rely on a false-assumption. No wonder it was difficult to
+	make suitable testcases to exercise this problem.
+	The One#scope_end method is suppose to places an Zero node 
+	on the historystack. In some cases it should bailout early
+	so that the historystack is untouched (not placing the Zero node).
+	I mistakenly thought that I should ensure that all children
+	had to be in the DONE state and otherwise bailout.
+	However this by coincidence only worked for #test_repeat_nested10.
+	Conclusion: The hidden problem was that I have to check that the
+	children isn't zero width, to prevent endless loop.
+	That was difficult to figure out.
+
+27-march-2004 Neoneye
+*	Zero + One has gotten QuantifierBase as their parent.
+*	identified the cause of problem for the #test_repeat_nested10
+	testcase.. #has_incomplete_children?  wasn't implemented.
+*	Moved @input + @registers + Memento from ScannerVisitorBase
+	to the derived ScannerVisitor class, so that there is less
+	to setup during testing of the base class.
+
+26-march-2004 Neoneye
+*	@is_complete in the One class is was intented to be used in
+	the #next_path method.. However we stopped using that yesterday.
+	There wasn't any good reasons to keep it!  Now its removed 
+	(if necessary I can always re-implement it). I were sitting
+	and attempting to making a testcase for it when I discovered
+	that it now were superflouish.. now the code is less obfuscated.
+
+25-march-2004 Neoneye
+*	the whitebox tests now more careful the One class,
+	against the borders.
+*	identified reason to change the One class way of dealing
+	with @index. It occured to me that it is very bad pragtice
+	to change index inside #next_path. Its more natual to do
+	such changes in the state-transition. Still the status
+	of rubicon is unchanged:
+	pass=1446, fail=92, skipped=22,  pass/total=92.6923076923077.
+
+24-march-2004 Neoneye
+*	whitebox testing of One#next_path, now exercises all paths.
+*	made a patch to Test-Unit-Mock, so that lambda's can be 
+	used within rotating Array and Hash'es.
+
+23-march-2004 Neoneye
+*	whitebox testing of Zero#next_path, now exercises all paths.
+
+17-march-2004 Neoneye
+*	renamed 'match_mixins.rb' -> 'blackbox_p5.rb'.
+*	renamed 'regexp.test' -> 'blackbox_rubicon_data'.
+*	renamed 'test_rubicon.rb' -> 'blackbox_rubicon.rb'.
+*	added 'test_rubicon.rb' which exercises this engine with
+	rubicon, the current status is:
+	pass=1446, fail=114,  pass/total=92.6923076923077.
+	This is better than ever, even though it isn't working correct!
+*	made a few hacks so that when I test rubicon against
+	GNU regepx builtinto ruby, it passes all ok.
+	Before there was 4 cases where escaping screwed up.
+
+27-feburary-2004 Neoneye
+*	Consolidated many of the #test_repead_nested testcases,
+	and discovered that many of them actually passes OK!
+*	#activate_next is now ensuring that all its children
+	has reached the DONE state, before it marks a node as DONE.
+*	fixed bug in #scope_end, where successive nodes should
+	have inherited INACTIVE.. but accidentialy became ACTIVE.
+
+26-feburary-2004 Neoneye
+*	BacktrackOperations::One way of invoking #activate_next
+	was very tricky. Now it raises an QuantifierEnd exception.
+
+23-feburary-2004 Neoneye
+*	refactored the last_input_value, so that it now is
+	a part of the iterator.
+
+20-feburary-2004 Neoneye
+*	I have separeted the ScannerVisitor class into 2 parts,
+	a Base part which can be unittested, and a derived 
+	class which is more highlevel (difficult to unittest).
+*	Added 'test_scanner_helpers.rb', which exercises above
+	class. I have discovered that my brand _new_ data 
+	structure is cyclic, which make #cloning difficult.
+	Because of #cloning problems, then I have added a 
+	bunch of testcases which exercise ScannerVisitorBase#clone.
+
+18-feburary-2004 Neoneye
+*	Yet one more time I have decided to start all over
+	again. This time because the data structure was too
+	complex to keep track of. Keeping an overview of
+	what is going on when each repeat command maintains
+	its own part of history is almost impossible, where
+	we sometimes insert events into the history and
+	other times remove events. Especially when we consider
+	nested quantifiers then it becomes a nightmare!
+	I need something simpler which is easier for me
+	to understand. See cvs-branch: yet_another_design.
+*	replaced Repeat class with Zero+One class which
+	has an instance of ShareData in common.
+
+17-feburary-2004 Neoneye
+*	added Common::TestCase which all testcases is derived
+	from. It contains some goodies.
+*	renamed 'test_mscanner.rb' into 'test_scanner.rb'.
+	renamed 'test_debug.rb' into 'test_common.rb'.
+	renamed 'mscanner.rb' into 'scanner.rb'.
+*	removed 'test_scanner.rb', 'test_scanner_nfa.rb',
+	'test_xcanner.rb', 'xcanner.rb', 'yxcanner.rb',
+	'scanner_nfa.rb', 'scanner_visit_repeat.rb',
+	'scanner_visit_repeat_old.rb'.
+
+11-feburary-2004 Neoneye
+*	re-enabled charclasses.
+*	grouped testcases which results in 'endless-loop'.
+
+10-feburary-2004 Neoneye
+*	capture_stderr has been added to 'test_ruby_regexp.rb'
+	so that unexpected output to stderr can be dealt with.
+*	re-enabled backreferences, anchors. This were simply
+	copy paste from my earlier code.
+*	re-implemented lookahead, this required adding a new
+	backtrackingoperation... but now it works.
+
+9-feburary-2004 Neoneye
+*	Added Repeat#debug_id, to help debugging of nested
+	expressions.
+*	Realized when count is below minimum then we must fake 
+	#execute_undo to beleive that we have found something, that 
+	is a important piece in solving the nested repeat ridle.
+
+29-january-2004 Neoneye
+*	Some of things which I placed in a 2/3 element Array
+	have now gotten their own classes. This makes debugging
+	much easier. Why didn't I do that right from the start?
+*	When debugging I now output an overview of the operation
+	input: the regexp string, its expression tree, text-input.
+*	Refactoring: placed the Repeat + Alternation classes in
+	a BacktrackOperations module.  Placed the Zero + One
+	strategy classes in a RepeatStrategies class.
+	Tried to move #path_end to the HistoryStack, but figured
+	out that this doesn't work, because finding-the-next-path
+	involves changing the history! Thus #path_end cannot be
+	refactored.
+
+28-january-2004 Neoneye
+*	Maximization is working again. Now the organization is
+	better prepared for dealing with nested repeats.
+	Similar as the 21-jan-2004 I had all tests enabled, however
+	in the mean-time I have found+fixed bugs in some testcases
+	where the integrity-data were incorrect. The code-design
+	has been improved/simplified:
+	* Repeat class is now using strategy (Zero/One), in the
+	  old design I didn't have a strategy so it was very ad-hoc.
+	* HistoryStack class has been introduced, which is a great
+	  improvement over having a plain Array.
+	* Abstract2Scanner assigns a 'parent_repeat' which points
+	  to the node which own the instance. In the old design I
+	  had a 'level' which indicated the nesting level.  
+	  I realized that this is inappropriate for determining the
+	  current scope of a command. Especially when a Repeat
+	  has been maximized and I were about to activate the next
+	  Repeat, then it were _impossible_ to determine which node
+	  to pick (gets very complex when dealing with nested 
+	  repeats). 
+
+27-january-2004 Neoneye
+*	Scopes sux. Lets go back to having an Array for
+	each command. Instead of only having 1 array, I now want
+	to use 2 arrays, so that its easier to keep track of which
+	commands are active/inactive.
+*	The activate-next routine will be more correct by letting
+	each repeat node know about its parent. Using an integer
+	as nesting level is a really bad idea, because 2 different
+	nested expressions can have the exact same level id.
+	Thus easy to confuse with eachother. Now we use a ref
+	to the parent repeat.
+
+26-january-2004 Neoneye
+*	Scope class added.
+*	Strategies for repeat: Zero and One.
+
+25-january-2004 Neoneye
+*	Made branch 'repeat_nested', because I realized that a 
+	scope is necessary in order to easier determine which 
+	repeat node to activate next. By only having one array
+	then its _difficult_ to determine if the next element
+	can be activated. In case the element is on another level
+	then bailout.. It should become easier using scopes.
+
+23-january-2004 Neoneye
+*	made a sample webinterface: 2 text fields (regexp, text) 
+	and 2 buttons (ok, random). Took 3 hours.
+
+22-january-2004 Neoneye
+*	The #visit_repeat_end only popped elements until reaching
+	the first repeat. However when nested repeats occur, we
+	must pop the inner repeat nodes. This works now.
+*	I think I have figured out why inner-maximization causes
+	trouble. Its because #visit_repeat_end() flushes children
+	which isn't DONE yet. The children must be DONE first.
+	Also we must only activate next repeat which are in a
+	either the same level or a level below us. If the level
+	is higher than us then raise a PathEnd exception.
+
+21-january-2004 Neoneye
+*	The 'debug' keyword can now be used within modules,
+	thanks to Nobu Nokada for this.
+*	Repeat can now do maximization. 
+*	Yesterday it passed about 30 tests, today 107 passes OK.
+	Some of these tests which exercises both repeat and
+	alternation at the same time failed with the old design.
+	With the new design they all passes OK, this is a proof
+	that im on the right track this time. Status is:
+	Alternation, Greedy/NonGreedy, Minimum/Maximum.
+	Remaining problems is: nested repeats and empty expressions.
+
+20-january-2004 Neoneye
+*	Repeat lazy are now working with minimum and maximum.
+	Still maximization and nested repeats are on the Todolist.
+*	When a minimum count is specified then during scanning 
+	the RepeatEnd node now raises an PathEnd exception in
+	order not to evaluate the remaining expression.
+	This way we don't do any un-necessary work.
+
+19-january-2004 Neoneye
+*	I felt dissatisfied with the old code, its very confusing.
+	so I wanted something simpler. The latest approach is to
+	use Memento pattern for keeping track of current branches.
+	The old design from yesterday (16-jan), could do both
+	repeat + alternation. But it were quite impossible to
+	add minimum/maximum for repeat!  Its interesting to see
+	the different kinds of drawbacks each design has.
+	Only alternation are working in the new design.
+	Still Repeat are broken.
+
+16-january-2004 Neoneye
+*	#lets_maximize_next_repeat are now working with 
+	non-nested-repeats. 
+*	Taking a snapshot of @resume is a bad idea to do in 
+	#visit_repeat because its too late and the content will 
+	be spoiled at this late point.  This snapshot must be
+	made in #visit_last in order to capture it when its fresh.
+
+15-january-2004 Neoneye
+*	The integrity check comparison did not calculate the right
+	match string. No wonder that things then behave wrong.
+*	Instead of storing Repeat entries on the resume stack, which
+	has an index. Its much simpler to store Zero and Once entries.
+	A Zero entry can be resumed from.
+	A Once entry cannot be resumed from, indicates popping limit.
+
+14-january-2004 Neoneye
+*	Suddenly it occured to me, why not place the testcases which
+	are suppose to work 100%, in a module for itself, so that
+	enabling/disabling these tests easily can be done by 
+	inserting/removing a single comment.
+	The same with the testcases that I am currently working on,
+	I have placed them in a 'Todo' module.
+
+11-january-2004 Neoneye
+*	Discovered that the way I conceptualy deal with 
+	mismatch outside alternation are _wrong_. Re-think this.
+*	Now the system for checking integrity are really working.
+*	Simplification of integrity-validation. By storing 
+	"current_index" rather than "next_index", it becomes much
+	easier to validate the current state against a integrity-map.
+
+11-January-2004 msparshatt
+*	NewRegexp classes initialize method now takes a parser class as an
+	optional second parameter
+*	Perl6Parser defaults to extended mode
+*	added literal string assertions
+*	added README.perl6 file
+
+07-january-2004 Neoneye
+*	[simplification] By letting ScannerHierarchy::AlternationEnd 
+	know about its successor, then I can remove @parent_nodes 
+	completely. Much easier to understand my own code now ;-)
+
+06-january-2004 Neoneye
+*	By invoking node.succ.accept(self) are a recursive behavier.
+	Its has caused me big trouble many time. Decides to rework
+	the ScannerVisitor class from skratch yet another time.
+	Let call it iteration3.
+*	Attempting to make the integrity tests working.. but only
+	feels like the design are wrong.
+
+05-january-2004 Neoneye
+*	added 'scanner_debug.rb' with a ScannerIntegrityDumpVisitor 
+	class, which outputs the current state of the scanner tree.
+
+02-january-2004 Neoneye
+*	Last night I changed the Scanner#attempt loop, so that it
+	now terminates when the resume stack goes empty. Earlier
+	it terminated when @found went true. This got me on the
+	right track, just before I went to bed I schetched how 
+	maximization of greedy repeat nodes could be implemented.
+*	Implemented the maximization of greedy repeat idea.
+*	repeat within a range are now working (min as well as max).
+
+28-december-2003 Neoneye
+*	I haven't been doing any serious coding for 10 days, 
+	because of christmas, and I doubt I will produce anything
+	good until next year.  BTW: Happy christmas/new year.
+*	I finaly decided to start from scratch and make a completely
+	new scanner. Day before yesterday + Today I have made a 
+	suitable skeleton, with a verbose testsuite that ensures the 
+	internal-integrity are all right. The Scanner#execute concept 
+	were also bad, and has been replaced by Xcanner#match which 
+	instantiates ScannerVisitor for every input position. I Should 
+	have done these things a long time ago.  Thats life :-)
+*	renamed #visit_nil -> #visit_alternation_end.
+*	I have added a @resume_stack. Instead of letting Alternation
+	and Repeat self managing matching patterns, then its now being
+	managed via a much more flexible resume mechanism.
+	It passes OK in the /(foob|fo|o)*bar/.match("foobar") testcase,
+	amazingly it does lazy matching. What needs to be done are:
+	greedy left2right matching, repeat-range, perhaps I
+	also have to deal with nested repeats.
+
+
+22-december-2003 msparshatt
+*	new tests for negative ranges and code assertions
+*	added factory methods for making code blocks
+*	parser recognises <(...)> sequence
+
+16-december-2003 Neoneye
+*	repeat.pattern inherits the strategy from the parent.
+*	endless loop detection has been reimplemented (easy).
+*	repeat-minimum is working (again).
+
+15-december-2003 Neoneye
+*	after some days being sick, I now feel OK and yesterday+today
+	I have made some early code for left2right scanning.
+	It can deal with repeat(0, inifinity) in sequence.
+	It cannot deal with nested repeats (results in endless recursion).
+	With left2right, then Repeats + Alternations becomes sligthly 
+	inefficient, but it can be solvable.
+
+15-december-2003 msparshatt
+*	added classes for handling code blocks
+*	added tests for mismatched brackets and nested groups
+*	mismatched brackets now raise an error in perl6 parser
+
+12-december-2003 msparshatt
+*	moved assertion code into seperate function
+*	allow nested assertions
+
+08-december-2003 msparshatt
+*	tests for perl6 style syntax added
+*	parser for perl6 style syntax added
+
+07-december-2003 Neoneye
+*	version 0.7 released.
+*	assert_regex_error method added.
+*	added many absurd charclass testcases, e.g. /[^\S]/.
+*	raise exceptions more often when parsing charclass.
+*	rubicon now says: pass/total=92.56%
+
+05-december-2003 Neoneye
+*	parser now uses iterators, instead of Array.
+*	extended (?x), (?x:, (?-x), (?-x: are now implemented.
+
+04-december-2003 msparshatt
+*	added tests for NewMatchData class
+
+04-december-2003 Neoneye
+*	multiline enable/disable are now working.
+	It controls the behavier of the '.' ANY.
+	When enabled ANY matches anything,
+	when disabled ANY matches anything else than newline.
+*	multiple options in sequence are now possible,
+	for instance you can write '(?i-m)'.
+*	rubicon now says: pass/total=91.66%
+
+03-december-2003 msparshatt
+*	changed NewMatchData class to handle zero length matches
+*	added testcase for zero length matches
+
+03-december-2003 Neoneye
+*	version 0.6 released.
+*	ignorecase enable/disable, are now working.
+	the rubicon testsuite says now:  pass/total=89.48%
+
+02-december-2003 Neoneye
+*	negative-lookahead are now working. Previously only
+	positive-lookahead worked. I had to introduce a 
+	ScannerHierarchy::Lookahead class, so that lookahead
+	now have becomed seperated from Grouping.
+
+01-december-2003 Neoneye
+*	Now uses iterator-ver0.3, where #is_done? has been
+	replaced by #has_next?/#has_prev?. Also support for 
+	#+/#- has been discarded (dangerous/unsafe).
+
+29-november-2003 Neoneye
+*	version 0.5 released.
+*	scanner now supports: pure-group, positive-lookahead.
+*	negative-lookahead problem, discovered minor flaw in design, 
+	will fix soon.
+
+28-november-2003 Neoneye
+*	parser can now recognize: pure-group, lookahead.
+
+27-november-2003 Neoneye
+*	first attempt to exercise my engine against the rubicon 
+	testsuite:  pass=1202, fail=358,  pass/total=77.0512820512821
+	Quite good, with some surprises.
+*	fixed problem /$/.match("") yielded 'nil'. Now it correctly
+	returns "". This were because Scanner#execute used 'until'
+	and therefore bailed out too early.
+
+26-november-2003 Neoneye
+*	anchors $ ^ \A \z \Z \b \B, has been implemented.
+*	parser+scanner now supports characterclasses:
+	[sequences],  [ra-nges], [[:posix_classes:]], \w\W\s\S\d\D.
+*	added a wide range of testcases which exercises charclasses.
+*	AbstractSyntax::Literal has been adopted so that its now being
+	used for characterclasses.
+
+25-november-2003 Neoneye
+*	parser can now understand characterclasses.
+*	/()*/ fails with my engine, lets call it BUG-25NOV03.
+*	version 0.4 released, since last there has been added
+	non-greedy repeats and the engine now internally uses iterators.
+*	yesterday+today, added #close statements to iterators.
+	Most of today I have been struggling trying to figure out
+	where I didn't invoke #clone correct. Because the number 
+	of #closed instances were FAR greater than #cloned instances.
+	But finaly I got that solved. 
+	Still the ScanRepeatLazy class has to #close iterators.
+	Still Registers#set_begin/end has to #close iterators.
+	When above are solved, then I have to be sure that ALL
+	iterators gets closed correct.  Now most of them are being
+	closed (90%).
+*	test_scanner.rb/assert_regexp now also test integrity of
+	number of clones/closed iterators. All test passes OK again.
+
+23-november-2003 Neoneye
+*	Registers class added.
+*	figured out why #test_repeat7 failed. I did a --side-by-side
+	diff between the output with/without iterators. I could see
+	that "endless loop detection" were broken. The reason why 
+	it didn't work were because Iterator::Collection#==(other)
+	wasn't implemented. Now compare has been fixed, and therefore
+	#test_repeat7 also works.
+
+22-november-2003 Neoneye
+*	Started using my 'iterator' package which I have been working
+	on the last few days. I have replaced the old Array[position]
+	code with a iterator, so that I just can type @input.current
+	in order to fetch the element under the cursor.
+	Except for #test_repeat7, all other tests passes OK.
+	Its probably because of too much/little #deep_clone'n.
+
+19-november-2003 Neoneye
+*	Dave Thomas's rubicon testsuite has many good tests. Its
+	'COPYING' file says same license as Ruby, so I guess that
+	there is no problems re-cycling it here. Thanks Dave.
+	Though $& seems to be write-protected. [big problem]
+*	repeat-lazy is now working, you can now write /<.+?>/
+	in order to do non-greedy matching. The implementation only
+	took me 30 minutes. Suprisingly pleasant I must admit.
+
+18-november-2003 Neoneye
+*	version 0.3 released. Since last version there has been added
+	backreferences   /("|').*\1/
+	range-maximum (the most difficult thing to implement so far).
+*	more verbose testcases added; #test_repeat_range25_simulate1/2.
+*	the way I dealt with ScanRepeat#found_times were wrong.
+	I only did assignment when I got a successfull result, 
+	instead I had to do assignment after every accept.
+*	ScanRepeat dealt also wrong with @reps, it didn't keep track
+	of the found_reps. This is necessary in order to start from
+	the previous position in an outer-repeat. 
+*	bugfix, closed the BUG-14NOV03. There were many problems/bugs at
+	the same time which confused me. 
+	1)  do endless-loop detection only when max==infinity.
+	2)  keep track of found_reps so far.
+	3)  found_times where screwed up.
+	I consider the range.maximum problem as being closed.
+
+17-november-2003 Neoneye
+*	identified 4 more cases of the BUG-14NOV03.
+*	solved #test_repeat_range23. It was quite obvious what
+	was wrong here, endless-loop-detection stopped the loop.
+	But when there are a upper limit for how many times it
+	shall loop, then it doesn't make sense to do 
+	endless-loop-detection. Not realized during analasis.
+
+15-november-2003 Neoneye
+*	QUESTIONS file added.
+*	separation of concerns: times, found_times has been moved
+	out of the ScanRepeat#loop_body.
+*	improved debugging, so that I better can keep track with
+	execution of nested-regexp's.
+*	identified the reason why yesterday's bug exists.
+	Its because ScanRepeat#execute raises a Mismatch in case
+	there isn't any result. But in this paticular case we
+	neither have a match nor a mismatch. Its something else.
+
+14-november-2003 Neoneye
+*	[bug] #test_repeat_range21 fails. It says /a(x{2}*)a/
+	and should match "0axxxxa1", but doesn't. Interesting.
+*	moved many testcases from 'test_ruby_regex.rb' to 'match_mixins.rb'
+
+13-november-2003 Neoneye
+*	Backreferences '\1'..'\9' are now implemented.
+*	The optional operator '?' are now implemented.
+*	Repeat-maximum-limit are now working. Leasson learned: 
+	At first I thought that I should raise an exception when
+	exceeding maximum, but this is wrong. It is legal to cross
+	maximum, we just have to stop scanning at that point.
+*	Mark Sparshatt has contributed with a NewMatchData class, plus
+	a NewRegexp class which are compatible with Ruby's interface.
+	You can supply a regexp-string + input-string on the commandline,
+	and follow whats happinging during the scan phase.
+*	version 0.2 released. Since last version there has been added
+	range-minimum (was quite difficult to implement I admit),
+	so that you now can write /ruby{42,}/ or /(a|b|c)+/.
+*	ScanRepeat#loop_body shall only keep track of @reps when
+	we get a result back from accept. My main problem were that
+	I keept track of the latest @reps, which of cause would be
+	way off when the repeat-pattern cannot match any longer.
+	Repeat-Minimum now works, though refactoring is needed.
+*	ScanRepeat#loop_body find union set between result_next
+	and @result, was working incorrectly. Now its working.
+*	tuff leasson: In case a repeat has no result, we must raise 
+	Mismatch. Looking at the debug output from #test_repeat_plus1
+	I observe after 2 days that the problem in the output already
+	occurs when attempting to match at I0.  I thought that it
+	started at I1. Propagation of errors are dangerous, especialy
+	when you don't focus on the first occuring bug.
+
+12-november-2003 Neoneye
+*	result-positions is now indicating seperator-index. Before
+	it indicated cell-index. But it gave a negative width, when
+	one wanted to return an empty string.
+*	ScannerLookupVisitor class added, so that I no longer have
+	to build complex structures. Its sufficiently to enter a
+	regex string and tell the index of the node to be returned.
+
+11-november-2003 Neoneye
+*	figured out why I the 'nil.call' error, in #assert_regex.
+	this happens when the testcases are being executed via 
+	Ruby-1.8.0. Everything works fine with Ruby-1.8.1 preview2.
+*	The Scanner#visit_repeat method has gotton too complex,
+	therefore I have made a ScanRepeat class out of it.
+	Can we deal with repeats in a more intuitive way?
+
+10-november-2003 Neoneye
+*	better debugging system has been introduced. Instead of passing
+	a boolean around to those classes which I want to debug, I now
+	set a global variable $debug. This way I can avoid to make 
+	changes to 'test/match_mixins.rb'.
+
+06-november-2003 Neoneye
+*	verions 0.1 released, the scanner can do the most fundemental 
+	things. the source spans only 960 lines of ruby code:
+	*    repeat     (nested repeats are tricky, but works)
+	.    match anything except newline
+	( )  grouping
+	|    alternation

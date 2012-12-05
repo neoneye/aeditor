@@ -1,0 +1,257 @@
+01-april-2004 Neoneye
+*	version 0.12 is released.
+*	updated README, INSTALL.
+*	changed licence from BSD to Ruby's.
+*	Converted tests from RUnit to Test::Unit.
+*	Made some warnings go away because I used deprecated
+	features. 
+
+16-september-2003 Neoneye
+*	INSTALL was refering to 'ncurses-ruby' using
+	the confusing 'ncurses' name. People will think
+	it is Ncurses that I am refering to.. Which it
+	is NOT. Also guide to how to uninstall AEditor
+	has been added. [Johan Gade's suggestion]
+
+27-august-2003 Neoneye
+*	moved 'backend/cmdline.rb' to 'ncurses/cmdline.rb'.
+*	the last week I have been playing with DocBook
+	and 'catalog.xml'. I have started both a user-
+	and a developer-manual project.
+
+18-august-2003 Neoneye
+*	change directory hierarchy, so that frontend is
+	seperated from backend.
+*	merged 'markers1' branch. Could not initiate the
+	work with markers, because of the limited 
+	keybinding system. Thus the last week I have spend
+	parsing wierd escape sequences from the keyboard,
+	now I just have to integrate it into AEditor.
+	When integration is completed, I will hopefully
+	be able to Insert, Remove, Goto markers.
+
+12-august-2003 Neoneye
+*	version 0.11 is released.
+*	At the bottom of file: the empty lines is rendered
+	with black background (nice). Earlier it rendered 
+	'yyy' for debugging purposes (annoying).
+*	expand_fold now scans the whole line, this is
+	much more user-friendly. Earlier the cursor
+	had to be located right above the fold (annoying).
+
+11-august-2003 Neoneye
+*	fixed: macroes now invoke #execute_redo when 
+	redoing, and use #execute at first invokation.
+	Before when redoing it just invoked #execute,
+	but this has bad consequences: pageup/down
+	doesn't remember @height correctly, therefore
+	pageup/down will cause problems in macros.
+*	fixed, pagedown/up trashed the x position.
+*	added F7+F8 to Ncurses menu.
+*	fixed autoindent problem with empty lines.
+
+08-august-2003 Neoneye
+*	version 0.10 is released.
+*	determine title when collapsing folds is working.
+*	collapse fold is now working (press F8).
+*	identify begin/end of fold.
+*	Edit#scan_right(&block) is added.
+
+07-august-2003 Neoneye
+*	Commands::FoldExpand now raises CommandHarmless,
+	so that the whole application doesn't terminate.
+*	the percent indicator now reflects the number of
+	visible lines. Better in conjunction with folding.
+*	Edit::Fold didn't reflect the width of the fold
+	instance (were hardcoded to 3). This caused the
+	x position to screw. Fixed.
+
+06-august-2003 Neoneye
+*	F7 = expand fold.
+*	Edit#unlink_fold! is implemented.
+
+05-august-2003 Neoneye
+*	F8 = insert fake fold.
+*	we can now render the 2 types of folds we will
+	become able to deal with: line-fold and scope-fold.
+
+03-august-2003 Neoneye
+*	rendering now uses Visitor instead of switch.
+
+01-august-2003 Neoneye
+*	merged 'pagedown_bottom' branch, which fixed the
+	undo-behavier of pagedown at the buffer-bottom.
+
+31-juli-2003 Neoneye
+*	reworked the test system for Command::Pagedown, in
+	order to adress offbyone problem, plus problem with
+	virtual lines.
+
+29-juli-2003 Neoneye
+*	version 0.9 is released.
+*	merged with branch 'notify_scope1'. Much refactoring
+	has resulted in more robust and reliable undo/redo.
+*	update display after playing a failing-macro were 
+	insufficiently. This was before the CommandHarmless
+	exception hierarchy were fully introduced. A fatal
+	exception was emitted from a command contained within
+	a macro. Nevertheless the screen should alway be 
+	refreshed after playing a macro.
+
+28-juli-2003 Neoneye
+*	re-enabled Buffer#test_exception_xxx.
+*	In case a command is not able to execute, then a
+	CommandHarmless derived exception is thrown.
+	This won't crash the application, only fatal exceptions
+	is suppose to crash the application.
+
+27-juli-2003 Neoneye
+*	fixed: Commands::Pageup did not deal correct with
+	top-of-buffer. When trying to undo the operation 
+	scrolling got messed up. solution: lock the view!
+*	refactoring: true/false returnvalues from commands
+	indicating wheter or not there were modifications on
+	the data. Has been replaced by an exceptions-system,
+	if exception thrown then no modification occured.
+	If it terminate successfully then, some kind of 
+	modification to the data occured. This has improved
+	robustness of commands a lot.
+*	refactoring: notify_scope is now only invoked at 
+	top-level (Control#execute). This has simplified all
+	commands a bit.
+*	version 0.8 is released.
+*	bugfix: Edit::VSpace#move_left/right did not return
+	true/false correctly trashing undo/redo completely.
+*	fixed: Buffer#block_remove did do a #import_top instead
+	of #import_bottom, which trashed screw completely.
+
+26-juli-2003 Neoneye
+*	made a general (dirty) comensate for screw mixin,
+	it seems to behave wierd with BlockRemove, therefore
+	do some unittesting of it.
+*	investigated horizontal operations.
+	http://aeditor.rubyforge.org/horizontal.html
+
+25-juli-2003 Neoneye
+*	transition from sourceforge to rubyforge. 
+
+24-juli-2003 Neoneye
+*	transition from sourceforge to rubyforge. 
+
+22-juli-2003 Neoneye
+*	fixed Buffer#set_memento, so that position-within-view
+	is preserved.
+
+21-juli-2003 Neoneye
+*	version 0.7 is released.
+
+20-juli-2003 Neoneye
+*	TestCommandsMovement#test_pageup_xxx is passing OK.
+	Thus Commands#MovePageup is now able to restore 
+	scrolling, it even works after the window.resize!!!
+*	bugfix in Buffer#resize_topbottom, import-bot fixed.
+*	bugfix in Buffer#set_memento_position, scrolling fixed.
+
+19-juli-2003 Neoneye
+*	TestCommandsMovement#test_pagedown_xxx is passing OK.
+	Thus Commands#MovePagedown is now able to restore 
+	scrolling, it even works after the window.resize!!!
+*	Command#execute_undo/redo is added.
+*	Extracted Ncurses dependent code to 'frontend_ncurses.rb'
+
+18-juli-2003 Neoneye
+*	Merged Buffer#create_memento_variants into
+	Buffer#create_memento(type).
+	Merged Buffer#set_memento_variant into
+	Buffer#set_memento(memento).
+*	Earlier #create_memento returned an Array containing
+	the state. Now its encapsulated within a class:
+	Memento::All, ::Line, ::Position.
+
+17-juli-2003 Neoneye
+*	Buffer#move_page_up can now deal with 'height'.
+
+16-juli-2003 Neoneye
+*	Buffer#move_page_down can now deal with 'height'.
+
+14-juli-2003 Neoneye
+*	renamed Originator#get_state into #create_memento
+	and #set_state into #set_memento.
+
+11-juli-2003 Neoneye
+*	version 0.6 is released.
+*	implemented blocking: cut, copy, paste.
+	See the cvs-branch 'blocking1'.
+*	StateAll is now encapsulating the 'entire' state.
+*	I had confused Buffer#position_visible_lines with
+	Buffer#position_y. Not blocking is rendered OK.
+*	This message is written in Aeditor itself!
+
+10-juli-2003 Neoneye
+*	Buffer#cmd_block_copy + paste is now able to deal
+	correct with oneliners and autoindent.
+*	bugfix: Edit#set_state did not #reset, therefore it
+	keept accumulation data. Which is a really bad idea.
+
+09-juli-2003 Neoneye
+*	Buffer#cmd_block_paste is implemented.
+*	Buffer#cmd_block_copy is implemented.
+*	Buffer#cmd_block_remove is implemented.
+
+07-juli-2003 Neoneye
+*	version 0.5 is released.
+*	Buffer#cmd_move_home: in case the cursor is located
+	on an empty line, then it scans the lines above in
+	order to determine the indentation level.
+
+06-juli-2003 Neoneye
+*	Edit#move_home is now able to toggle between
+	indentation-point and begining of line.
+*	auto-indent when issuing Buffer#cmd_breakline.
+*	View#bottom_menu now fits to width of screen, plus
+	shows if we are in record_mode.
+*	refactoring of View, so its nolonger a flyweigth.
+*	Found out that if the ESCDELAY env variable is
+	assigned to a too low value (zero), then on certain
+	terminals (xterm) pressing an arrow-key results
+	in 'clean-exit'. Therefore ESCDELAY = 100.
+
+05-juli-2003 Neoneye
+*	Cellarea can now bind attributes to a color.
+*	View#top_menu now fits to width of screen, plus
+	shows the buffer.filename. It were static before.
+*	full-snapshots for vertical operation is no longer
+	necessary. Buffer#get/set_state_position is added.
+*	version 0.4 is released
+*	fixed: Buffer#get_state messed up the newlines.
+*	fixed: Buffer#replace_content throwed a
+	BufferBottom exception, if empty buffer supplied.
+*	Buffer#file_save is implemented. 
+	before writing to disk, it makes a backup ".bak".
+
+04-juli-2003 Neoneye
+*	fixed: import_bottom did not deal correctly with
+	the last-line in the buffer. If the second-last-line
+	were terminated with physical-newline, and the
+	last-line were empty. Then it raised BufferBottom.
+	Now it imports an empty line as its suppose to.
+
+03-juli-2003 Neoneye
+*	fixed: if no file2open were supplyed to aedtior
+	then it simply crashed during startup.
+*	fixed: on consoles without color, the script died.
+
+02-juli-2003 Neoneye
+*	version 0.3 is released
+*	The Escape key is now terminating us more gently.
+*	Nobu Nokada suggested that instead of hacking with
+	rubys search path ($:[0]), that I instead prefixed
+	require statements with 'aeditor'. Nice, tnx :-)
+*	version 0.2 is released
+*	no exceptions if pressing 'play' as the first thing.
+*	the 'aeditor' binary is now able to locate main.
+*	Ncurses::KEY_BACKSPACE binding to :do_backspace.
+*	the log file is now generated in the temp dir.
+
+01-juli-2003 Neoneye
+*	version 0.1 is released

@@ -1,0 +1,101 @@
+<section id="overview">
+<title>An overview of this project</title>
+<para>placeholder
+</para>
+
+<section>
+<title>Synopsis</title>
+<para>placeholder
+</para>
+</section>
+
+<section>
+<title>A broad overview</title>
+<para>AEditor currently consists of 5 big sub-projects.
+</para>
+<para>The <productname>backend</productname> is the engine 
+which drives the editor. It is heavily unit tested and entirely 
+platform-independent.
+</para>
+<para>An <productname>regexp-engine</productname> to be used
+for syntax coloring and advanced seaching. Its aiming towards 
+being 99% compatible with the GNU-regexp engine that Ruby uses. 
+Also perl6 syntax would be nice.
+</para>
+<para>The <productname>frontend(s)</productname> is the code 
+which deals with input and output between human and backend. 
+There can be several frontends, to name a few: Ncurses, GTK, OpenGL.
+Frontends are highly platform-specific.
+</para>
+<para><productname>Language-bridge</productname>. Because 
+frontends can be written in an entirely different language 
+than the backend, there is need for a language-bridge. At the 
+moment only Ruby-C++ has been explored. I doubt there is need 
+for other language-bridges, but I should never say never.
+</para>
+<para>Analysis and thoughts on how things should be 
+implemented. Thoughts on how operations should behave under
+different conditions(undo/redo) in order to be most 
+user-friendly.
+</para>
+</section>
+
+<section>
+<title>Goal, status, plan</title>
+<para>The primary goal for AEditor is to make a highly
+flexible core, which can be tweaked and customized.
+I prioritize user-friendlyness of the operations very high,
+because I have seem too many editor which is user-hostile.
+The core will probably require some more iterations before I
+feel satisfied with it. More secondary is GUI Frontends.
+</para>
+<para>The future plan is to do experiments with:
+</para>
+<itemizedlist>
+<listitem><para>multiple views.
+</para></listitem>
+<listitem><para>syntax hiliting.
+</para></listitem>
+<listitem><para>unicode internal representation.
+</para></listitem>
+</itemizedlist>
+</section>
+
+<section>
+<title>Please contribute</title>
+<para>AEditor needs your help. All kinds of ideas is welcome, 
+there is no dumb questions. If you don't get the answers
+you are seeking, then it is not because you are dumb, it's
+because AEditor is lacking documentation. If it can happen
+to you, then its highly likely that others will experience
+same kinds of problems. Please ask so we can rule out such
+problems.
+</para>
+<para>AEditor is open-source and entirely free, please support
+such kinds of projects. 
+</para>
+<para>Never contribute to any closed-source/commercial projects.
+They don't deserve to get ANY help!
+</para>
+</section>
+
+<section>
+<title>Details of basic concepts</title>
+<para>placeholder
+</para>
+
+<section>
+<title>One backend, multiple frontends (events between)</title>
+<para>placeholder
+</para>
+</section>
+
+<section>
+<title>User-friendly</title>
+<para>placeholder
+</para>
+</section>
+
+</section>
+
+</section>
